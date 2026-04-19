@@ -5,12 +5,12 @@ import { useState, useRef } from 'react'
 // 🔑 STEP 2: Create a free API key (takes 30 seconds)
 // 🔑 STEP 3: Replace the text below with your key and save
 // ============================================================
-const GEMINI_API_KEY = 'AIzaSyBd0nxbBBzVyB_dSZKOqsCCIKKipb-sYfY'
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 // ============================================================
 // That's it! The scanner will work immediately after saving.
 // ============================================================
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`
 
 export default function Scanner() {
   const [preview, setPreview]     = useState(null)
