@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brown-50:  #fdf6f0;
+  --brown-100: #f5ebe0;
+  --brown-200: #e8d5bc;
+  --brown-300: #d4a574;
+  --brown-400: #c08040;
+  --brown-500: #8b5e3c;
+  --brown-600: #6e4a2e;
+  --brown-700: #523621;
+  --brown-800: #3d2b1f;
+  --brown-900: #2a1d14;
+  --cream: #fefaf6;
+  --gold: #d4a017;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--brown-100);
+  color: var(--brown-800);
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--brown-100);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--brown-300);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brown-500);
+}
+
+/* Grain overlay utility */
+.grain-overlay::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Card hover lift */
+.card-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(59, 36, 20, 0.12);
+}
+
+/* Button base */
+.btn-primary {
+  @apply bg-brown-500 text-cream px-6 py-3 rounded-full font-body font-medium
+         hover:bg-brown-600 active:scale-95 transition-all duration-200;
+}
+.btn-outline {
+  @apply border border-brown-400 text-brown-600 px-6 py-3 rounded-full font-body font-medium
+         hover:bg-brown-200 active:scale-95 transition-all duration-200;
+}
+
+/* Staggered animation delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+.animate-fade-up {
+  opacity: 0;
+  animation: fadeUp 0.6s ease forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
