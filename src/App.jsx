@@ -3,13 +3,19 @@ import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Machines from './pages/Machines'
 import WorkoutPlan from './pages/WorkoutPlan'
+import WorkoutLogger from './pages/WorkoutLogger'
 import Diet from './pages/Diet'
 import Scanner from './pages/Scanner'
 import Progress from './pages/Progress'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Onboarding from './pages/Onboarding'
+import Coach from './pages/Coach'
+import Calculator from './pages/Calculator'
+import WorkoutHistory from './pages/WorkoutHistory'
+import BodyMetrics from './pages/BodyMetrics'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 
 function OnboardingGuard({ children }) {
   const { user } = useAuth()
@@ -19,6 +25,7 @@ function OnboardingGuard({ children }) {
 
 function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <Router>
         <div className="min-h-screen bg-brown-100 grain-overlay">
@@ -30,13 +37,19 @@ function App() {
             <Route path="/"           element={<OnboardingGuard><Home /></OnboardingGuard>} />
             <Route path="/machines"   element={<OnboardingGuard><Machines /></OnboardingGuard>} />
             <Route path="/workout"    element={<OnboardingGuard><WorkoutPlan /></OnboardingGuard>} />
+            <Route path="/log"        element={<OnboardingGuard><WorkoutLogger /></OnboardingGuard>} />
             <Route path="/diet"       element={<OnboardingGuard><Diet /></OnboardingGuard>} />
             <Route path="/scanner"    element={<OnboardingGuard><Scanner /></OnboardingGuard>} />
             <Route path="/progress"   element={<OnboardingGuard><Progress /></OnboardingGuard>} />
+            <Route path="/coach"      element={<OnboardingGuard><Coach /></OnboardingGuard>} />
+            <Route path="/calculator" element={<OnboardingGuard><Calculator /></OnboardingGuard>} />
+            <Route path="/history"    element={<OnboardingGuard><WorkoutHistory /></OnboardingGuard>} />
+            <Route path="/metrics"    element={<OnboardingGuard><BodyMetrics /></OnboardingGuard>} />
           </Routes>
         </div>
       </Router>
     </AuthProvider>
+    </ThemeProvider>
   )
 }
 

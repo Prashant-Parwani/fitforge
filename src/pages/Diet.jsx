@@ -1,5 +1,8 @@
 import { useState, useMemo } from 'react'
-import { foodDatabase, foodCategories, dietPlans } from '../data/foodDatabase'
+import { useAuth } from '../context/AuthContext'
+import { allFoods as foodDatabase, foodCategories, dietPlans } from '../data/foodDatabase'
+import MealPlanCard from '../components/MealPlanCard'
+import { OPENROUTER_API_KEY, callAI } from '../config'
 
 function MacroBar({ label, current, target, color }) {
   const pct = Math.min(100, Math.round((current / target) * 100))
@@ -122,7 +125,137 @@ export default function Diet() {
   const [foodLog, setFoodLog]       = useState([])
   const [goal, setGoal]             = useState('Build Muscle')
 
+  const { user, updateUser } = useAuth()
   const currentPlan = dietPlans[goal] || dietPlans['Stay Fit']
+
+  // ── AI Meal Planner state ──
+  const [aiPlan, setAiPlan]         = useState(() => {
+    try { return user?.aiMealPlan || null } catch { return null }
+  })
+  const [aiLoading, setAiLoading]   = useState(false)
+  const [aiError, setAiError]       = useState('')
+  const [regenDay, setRegenDay]     = useState(null)
+  const [planPrefs, setPlanPrefs]   = useState({
+    calories: user?.goal === 'Lose Weight' ? '1800'
+            : user?.goal === 'Build Muscle' ? '3000'
+            : user?.goal?.includes('Bulk') ? '3500' : '2200',
+    diet:     user?.diet || 'No Preference',
+    budget:   'Normal',
+    allergies: '',
+  })
+
+
+
+  const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+
+  // ── Task 6: AI Daily Nutrition Insight ──
+  const [insight, setInsight]       = useState(null)
+  const [insightLoading, setInsightLoading] = useState(false)
+  const [insightError, setInsightError]     = useState('')
+
+  const analyseMyDay = async () => {
+    if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.startsWith('PASTE_')) { setInsightError('Add your OpenRouter API key in src/config.js'); return }
+    if (foodLog.length < 2) { setInsightError('Log at least 2 foods first to get an analysis.'); return }
+    setInsightLoading(true)
+    setInsightError('')
+    setInsight(null)
+    try {
+      const prompt = `You are a nutritionist AI. Analyse this user's food day and return ONLY a JSON object, no markdown.
+
+USER GOAL: ${goal}
+DAILY TARGETS: ${currentPlan.calories} cal, ${currentPlan.protein}g protein, ${currentPlan.carbs}g carbs, ${currentPlan.fat}g fat
+
+EATEN TODAY:
+- Calories: ${totals.calories} / ${currentPlan.calories} kcal
+- Protein: ${totals.protein} / ${currentPlan.protein}g
+- Carbs: ${totals.carbs} / ${currentPlan.carbs}g
+- Fat: ${totals.fat} / ${currentPlan.fat}g
+- Foods: ${foodLog.map(f => f.name + ' (' + f.qty + 'g)').join(', ')}
+
+Return this exact JSON:
+{
+  "verdict": "one sentence overall assessment",
+  "protein_status": "good|low|high",
+  "protein_message": "specific message about protein with exact numbers",
+  "warning": "one thing that is too high or to watch out for (or null if nothing)",
+  "suggestion": "one specific food they should eat next to fix the biggest gap",
+  "score": <integer 1-10>
+}`
+      const raw = (await callAI('', prompt, 400, { temperature: 0.3 })).replace(/```json|```/gi,'').trim()
+      const parsed = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] || raw)
+      setInsight(parsed)
+    } catch(e) { setInsightError(e.message || 'Analysis failed. Try again.') }
+    finally { setInsightLoading(false) }
+  }
+
+  const generateMealPlan = async (dayToRegen = null) => {
+    if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.startsWith('PASTE_')) {
+      setAiError('Add your OpenRouter API key in src/config.js.')
+      return
+    }
+    setAiLoading(true)
+    setAiError('')
+    setRegenDay(dayToRegen)
+
+    const dayInstruction = dayToRegen
+      ? `Regenerate ONLY ${dayToRegen}'s meal plan. Return ONLY a JSON object with key "${dayToRegen}" containing the day's meals.`
+      : `Generate a FULL 7-day meal plan. Return a JSON object with keys for all 7 days.`
+
+    const prompt = `You are an expert Indian nutritionist. ${dayInstruction}
+
+USER:
+- Goal: ${user?.goal || planPrefs.diet}
+- Daily calorie target: ${planPrefs.calories} kcal
+- Diet preference: ${planPrefs.diet}
+- Budget: ${planPrefs.budget}
+- Allergies/avoid: ${planPrefs.allergies || 'None'}
+
+Return ONLY valid JSON, no markdown, no backticks. Structure for each day:
+{
+  "Monday": {
+    "totalCalories": 2200,
+    "breakfast":  { "description": "Besan cheela (2) with mint chutney + chai", "macros": { "calories": 320, "protein": 18, "carbs": 35, "fat": 8 } },
+    "midMorning": { "description": "Sprouts chaat with lemon (1 bowl) + apple", "macros": { "calories": 150, "protein": 8, "carbs": 22, "fat": 2 } },
+    "lunch":      { "description": "Dal tadka (1 bowl) + 2 roti + palak sabzi + dahi", "macros": { "calories": 550, "protein": 28, "carbs": 70, "fat": 10 } },
+    "snack":      { "description": "Roasted makhana (30g) + green tea", "macros": { "calories": 110, "protein": 3, "carbs": 20, "fat": 1 } },
+    "dinner":     { "description": "Moong dal khichdi (1 bowl) + egg bhurji (2 eggs) + salad", "macros": { "calories": 480, "protein": 28, "carbs": 58, "fat": 12 } }
+  }
+}
+
+IMPORTANT:
+- Use realistic Indian home-cooked meals primarily
+- Vary meals across days — do NOT repeat the same breakfast every day
+- ${planPrefs.diet === 'Vegetarian' || planPrefs.diet === 'Vegan' ? 'NO meat, chicken or fish — vegetarian only' : 'Mix of veg and non-veg is fine'}
+- Keep total daily calories close to ${planPrefs.calories} kcal
+- Include all 7 days if generating full plan`
+
+    try {
+      const rawText = await callAI('', prompt, 3000, { temperature: 0.7 })
+      const cleaned = rawText.replace(/\`\`\`json\s*/gi, '').replace(/\`\`\`\s*/g, '').trim()
+
+      let parsed
+      try { parsed = JSON.parse(cleaned) }
+      catch {
+        const match = cleaned.match(/\{[\s\S]*\}/)
+        if (match) parsed = JSON.parse(match[0])
+        else throw new Error('Could not parse AI response. Please try again.')
+      }
+
+      if (dayToRegen) {
+        setAiPlan(prev => ({ ...prev, ...parsed }))
+        updateUser({ aiMealPlan: { ...(user?.aiMealPlan || {}), ...parsed } })
+      } else {
+        setAiPlan(parsed)
+        updateUser({ aiMealPlan: parsed })
+      }
+
+    } catch (err) {
+      setAiError(err.message || 'Failed to generate plan. Please try again.')
+    } finally {
+      setAiLoading(false)
+      setRegenDay(null)
+    }
+  }
 
   const totals = useMemo(() => foodLog.reduce(
     (acc, item) => ({
@@ -157,6 +290,7 @@ export default function Diet() {
     { id: 'tracker',  label: 'Daily Tracker', emoji: '📋' },
     { id: 'database', label: 'Food Database', emoji: '🔍' },
     { id: 'plan',     label: 'Diet Plan',     emoji: '🤖' },
+    { id: 'aiplan',   label: 'AI Meal Plan',  emoji: '✨' },
   ]
 
   return (
@@ -188,7 +322,8 @@ export default function Diet() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
 
         {tab === 'tracker' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1 space-y-4">
               <div className="bg-cream rounded-2xl border border-brown-200 p-5">
                 <h2 className="font-display text-xl font-semibold text-brown-900 mb-1">Today's Progress</h2>
@@ -277,6 +412,54 @@ export default function Diet() {
               </div>
             </div>
           </div>
+
+          {/* ── AI Nutrition Insight (Task 6) ── */}
+          {foodLog.length >= 2 && (
+            <div className="mt-5">
+              {insightError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-4 py-3 mb-3">{insightError}</div>
+              )}
+              {!insight ? (
+                <button onClick={analyseMyDay} disabled={insightLoading}
+                  className="w-full py-3 rounded-2xl border-2 border-dashed border-brown-300 text-sm font-medium text-brown-600 hover:border-brown-500 hover:bg-brown-50 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  {insightLoading
+                    ? <><span className="w-4 h-4 border-2 border-brown-400 border-t-transparent rounded-full animate-spin"/>Analysing your day...</>
+                    : <>🤖 Analyse My Day with AI</>
+                  }
+                </button>
+              ) : (
+                <div className="bg-brown-800 rounded-2xl p-5 text-cream">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-display text-lg font-semibold">Today's Analysis</h3>
+                    <div className="flex items-center gap-2">
+                      <div className={`text-2xl font-display font-bold ${insight.score >= 7 ? 'text-green-400' : insight.score >= 4 ? 'text-amber-400' : 'text-red-400'}`}>
+                        {insight.score}/10
+                      </div>
+                      <button onClick={() => setInsight(null)} className="text-brown-400 hover:text-brown-200 text-xs">↺ Re-analyse</button>
+                    </div>
+                  </div>
+                  <p className="text-brown-200 text-sm mb-4">{insight.verdict}</p>
+                  <div className="space-y-2.5">
+                    <div className={`rounded-xl p-3 ${insight.protein_status === 'good' ? 'bg-green-900/40' : 'bg-amber-900/40'}`}>
+                      <div className="text-xs font-semibold uppercase tracking-wider text-brown-300 mb-0.5">Protein</div>
+                      <p className="text-sm text-brown-100">{insight.protein_message}</p>
+                    </div>
+                    {insight.warning && (
+                      <div className="bg-red-900/40 rounded-xl p-3">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-brown-300 mb-0.5">⚠️ Watch Out</div>
+                        <p className="text-sm text-brown-100">{insight.warning}</p>
+                      </div>
+                    )}
+                    <div className="bg-brown-700/50 rounded-xl p-3">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-brown-300 mb-0.5">💡 Eat Next</div>
+                      <p className="text-sm text-brown-100">{insight.suggestion}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          </>
         )}
 
         {tab === 'database' && (
@@ -330,6 +513,120 @@ export default function Diet() {
             <DietPlanView goal={goal} />
           </div>
         )}
+
+        {/* ── AI MEAL PLAN TAB ── */}
+        {tab === 'aiplan' && (
+          <div>
+            {/* Preferences form */}
+            {!aiPlan && (
+              <div className="bg-cream rounded-2xl border border-brown-200 p-5 mb-5">
+                <h2 className="font-display text-xl font-semibold text-brown-900 mb-1">AI Weekly Meal Planner</h2>
+                <p className="text-sm text-brown-500 mb-5">Tell us your preferences and we'll generate a full 7-day personalised Indian meal plan instantly.</p>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-brown-600 mb-1.5">Daily Calories (kcal)</label>
+                      <input type="number" value={planPrefs.calories}
+                        onChange={e => setPlanPrefs(p => ({ ...p, calories: e.target.value }))}
+                        placeholder="2000"
+                        className="w-full px-3 py-2.5 rounded-xl border border-brown-200 bg-brown-50 text-brown-800 text-sm focus:outline-none focus:border-brown-400" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-brown-600 mb-1.5">Budget</label>
+                      <div className="flex flex-col gap-1.5">
+                        {['Economy','Normal','Premium'].map(b => (
+                          <button key={b} type="button" onClick={() => setPlanPrefs(p => ({ ...p, budget: b }))}
+                            className={`py-1.5 px-3 rounded-lg border text-xs font-medium transition-all text-left ${planPrefs.budget === b ? 'bg-brown-500 border-brown-500 text-cream' : 'border-brown-200 text-brown-600 hover:border-brown-400'}`}>
+                            {b === 'Economy' ? '💰 Economy — dal, roti, eggs' : b === 'Normal' ? '🛒 Normal — chicken, paneer' : '✨ Premium — salmon, quinoa'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-brown-600 mb-1.5">Diet Preference</label>
+                    <div className="flex flex-wrap gap-2">
+                      {['No Preference','Vegetarian','Vegan','High Protein','Low Carb'].map(d => (
+                        <button key={d} type="button" onClick={() => setPlanPrefs(p => ({ ...p, diet: d }))}
+                          className={`py-1.5 px-3 rounded-full border text-xs font-medium transition-all ${planPrefs.diet === d ? 'bg-brown-500 border-brown-500 text-cream' : 'border-brown-200 text-brown-600 hover:border-brown-400'}`}>
+                          {d}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-brown-600 mb-1.5">Allergies / Foods to Avoid (optional)</label>
+                    <input type="text" value={planPrefs.allergies}
+                      onChange={e => setPlanPrefs(p => ({ ...p, allergies: e.target.value }))}
+                      placeholder="e.g. peanuts, dairy, gluten"
+                      className="w-full px-3 py-2.5 rounded-xl border border-brown-200 bg-brown-50 text-brown-800 text-sm focus:outline-none focus:border-brown-400" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Error */}
+            {aiError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4 leading-relaxed">
+                {aiError}
+              </div>
+            )}
+
+            {/* Generate / regenerate button */}
+            <button onClick={() => generateMealPlan(null)} disabled={aiLoading}
+              className="btn-primary w-full py-4 text-base mb-6 flex items-center justify-center gap-3 disabled:opacity-60">
+              {aiLoading && !regenDay ? (
+                <><span className="w-5 h-5 border-2 border-cream/30 border-t-cream rounded-full animate-spin" />Generating your meal plan...</>
+              ) : aiPlan ? (
+                '🔄 Regenerate Full Plan'
+              ) : (
+                '✨ Generate My 7-Day Meal Plan'
+              )}
+            </button>
+
+            {/* Generated plan */}
+            {aiPlan && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-display text-lg font-semibold text-brown-900">Your 7-Day Meal Plan</h3>
+                  <span className="text-xs text-brown-400">Tap any day to regenerate it</span>
+                </div>
+                {DAYS.map((day, i) => {
+                  const isToday = new Date().getDay() === (i + 1) % 7 || (i === 6 && new Date().getDay() === 0)
+                  const dayData = aiPlan[day]
+                  return (
+                    <div key={day}>
+                      <MealPlanCard day={day} meals={dayData} isToday={isToday} />
+                      <button
+                        onClick={() => generateMealPlan(day)}
+                        disabled={aiLoading}
+                        className="w-full text-xs text-brown-400 hover:text-brown-600 py-1.5 transition-colors disabled:opacity-40 flex items-center justify-center gap-1">
+                        {aiLoading && regenDay === day
+                          ? <><span className="w-3 h-3 border border-brown-400 border-t-transparent rounded-full animate-spin" />Regenerating...</>
+                          : '🔄 Regenerate ' + day
+                        }
+                      </button>
+                    </div>
+                  )
+                })}
+
+                <div className="bg-brown-800 rounded-2xl p-5 text-cream mt-2">
+                  <h4 className="font-display text-base font-semibold mb-2">Nutrition Rules</h4>
+                  <ul className="text-brown-300 text-xs space-y-1 font-body">
+                    <li>• Eat within 30–60 min post-workout for muscle repair</li>
+                    <li>• Drink 3–4 litres of water daily — more on gym days</li>
+                    <li>• Never skip breakfast — your body has been fasting all night</li>
+                    <li>• Aim for 1g protein per pound of bodyweight</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </main>
   )
