@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import FloatingCoach from './components/FloatingCoach'
 import Home from './pages/Home'
 import Machines from './pages/Machines'
 import WorkoutPlan from './pages/WorkoutPlan'
@@ -46,6 +47,7 @@ function App() {
             <Route path="/history"    element={<OnboardingGuard><WorkoutHistory /></OnboardingGuard>} />
             <Route path="/metrics"    element={<OnboardingGuard><BodyMetrics /></OnboardingGuard>} />
           </Routes>
+          <FloatingCoach />
         </div>
       </Router>
     </AuthProvider>

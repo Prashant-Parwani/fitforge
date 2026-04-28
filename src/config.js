@@ -2,14 +2,19 @@
 // PASTE YOUR OPENROUTER API KEY HERE
 // Get your key at: https://openrouter.ai/keys
 // ============================================================
-export const OPENROUTER_API_KEY = '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'
+export const OPENROUTER_API_KEY = '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'
 // ============================================================
 
 export const AI_MODEL = 'openai/gpt-4o-mini'
 export const AI_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
-function getErrorMessage(status, fallback) {
-  if (status === 401) return 'Invalid API key. Check your OpenRouter key in src/config.js.'
+export function getAIErrorMessage(status, fallback) {
+  const message = fallback || ''
+  if (message.toLowerCase().includes('user not found')) {
+    return 'OpenRouter API key/account not found. Create a new key at openrouter.ai/keys and paste it in src/config.js.'
+  }
+  if (status === 401) return 'Invalid OpenRouter API key. Check your key in src/config.js.'
+  if (status === 403) return 'OpenRouter rejected this request. Check that your key is active and has access to the selected model.'
   if (status === 429) return 'Rate limit hit. Wait a moment and try again.'
   return fallback || `HTTP ${status}`
 }
@@ -36,7 +41,7 @@ export async function callAI(systemPrompt, userMessage, maxTokens = 1000, option
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))
-    throw new Error(getErrorMessage(response.status, err?.error?.message))
+    throw new Error(getAIErrorMessage(response.status, err?.error?.message))
   }
 
   const data = await response.json()
@@ -67,7 +72,7 @@ export async function callVision(base64Image, mimeType, textPrompt) {
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))
-    throw new Error(getErrorMessage(response.status, err?.error?.message))
+    throw new Error(getAIErrorMessage(response.status, err?.error?.message))
   }
 
   const data = await response.json()

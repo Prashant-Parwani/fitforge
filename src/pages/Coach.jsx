@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 // ─────────────────────────────────────────────────────────────────────────────
 // API key: edit src/config.js to set your OpenRouter key (one file, all AI features)
 // ─────────────────────────────────────────────────────────────────────────────
-import { OPENROUTER_API_KEY, AI_MODEL, AI_URL } from '../config'
+import { OPENROUTER_API_KEY, AI_MODEL, AI_URL, getAIErrorMessage } from '../config'
 
 const SUGGESTED_QUESTIONS = [
   'What should I eat today to hit my protein goal?',
@@ -147,7 +147,7 @@ export default function Coach() {
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}))
-        throw new Error(err?.error?.message || `Error ${response.status}`)
+        throw new Error(getAIErrorMessage(response.status, err?.error?.message))
       }
 
       const data    = await response.json()
