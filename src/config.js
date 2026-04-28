@@ -1,9 +1,6 @@
-// ============================================================
-// PASTE YOUR OPENROUTER API KEY HERE
-// Get your key at: https://openrouter.ai/keys
-// ============================================================
-export const OPENROUTER_API_KEY = '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'
-// ============================================================
+// Set this in .env locally and in Vercel Environment Variables.
+// VITE_OPENROUTER_API_KEY=your_openrouter_key_here
+export const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || ''
 
 export const AI_MODEL = 'openai/gpt-4o-mini'
 export const AI_URL = 'https://openrouter.ai/api/v1/chat/completions'
@@ -11,9 +8,9 @@ export const AI_URL = 'https://openrouter.ai/api/v1/chat/completions'
 export function getAIErrorMessage(status, fallback) {
   const message = fallback || ''
   if (message.toLowerCase().includes('user not found')) {
-    return 'OpenRouter API key/account not found. Create a new key at openrouter.ai/keys and paste it in src/config.js.'
+    return 'OpenRouter API key/account not found. Create a new key at openrouter.ai/keys and set VITE_OPENROUTER_API_KEY in .env and Vercel.'
   }
-  if (status === 401) return 'Invalid OpenRouter API key. Check your key in src/config.js.'
+  if (status === 401) return 'Invalid OpenRouter API key. Check VITE_OPENROUTER_API_KEY in .env and Vercel.'
   if (status === 403) return 'OpenRouter rejected this request. Check that your key is active and has access to the selected model.'
   if (status === 429) return 'Rate limit hit. Wait a moment and try again.'
   return fallback || `HTTP ${status}`
