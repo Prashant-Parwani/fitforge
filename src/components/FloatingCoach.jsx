@@ -104,7 +104,7 @@ export default function FloatingCoach() {
     const message = (text || input).trim()
     if (!message || loading) return
     if (keyNotSet) {
-      setError('Add your OpenRouter API key in src/config.js to use the AI Coach.')
+      setError('Set VITE_OPENROUTER_API_KEY in your local .env and in Vercel Environment Variables.')
       return
     }
 
@@ -212,7 +212,7 @@ export default function FloatingCoach() {
 
         {keyNotSet && (
           <div className="bg-amber-50 border-b border-amber-200 px-3 py-2 flex-shrink-0">
-            <p className="text-xs text-amber-800">Add API key in <code className="bg-amber-100 px-1 rounded">src/config.js</code> to activate</p>
+            <p className="text-xs text-amber-800">Set <code className="bg-amber-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> in Vercel to activate</p>
           </div>
         )}
 

@@ -102,7 +102,7 @@ export default function WeeklyReport() {
 
   const generateReport = async () => {
     if (keyNotSet) {
-      setError('Add your OpenRouter API key in src/config.js.')
+      setError('Set VITE_OPENROUTER_API_KEY in .env and Vercel.')
       return
     }
 
@@ -192,7 +192,7 @@ Tracked with FitForge`
     <div className="space-y-5">
       {keyNotSet && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-800">
-          Add your OpenRouter API key in <code className="bg-amber-100 px-1 rounded">src/config.js</code> to use AI reports.
+          Set <code className="bg-amber-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> in .env and Vercel to use AI reports.
         </div>
       )}
 

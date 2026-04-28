@@ -27,7 +27,7 @@ export default function Scanner() {
   const analyseImage = async () => {
     if (!imageFile) return
     if (keyNotSet) {
-      setError('Add your OpenRouter API key in src/config.js.')
+      setError('Set VITE_OPENROUTER_API_KEY in your local .env and in Vercel Environment Variables.')
       return
     }
 
@@ -110,7 +110,7 @@ Use accurate per-100g nutrition. Chicken breast is about 165 kcal and 31g protei
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 space-y-5">
         {keyNotSet && (
           <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 text-sm text-amber-800">
-            Add your OpenRouter API key in <code className="bg-amber-100 px-1 rounded">src/config.js</code>.
+            Set <code className="bg-amber-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> in your local .env and in Vercel.
           </div>
         )}
 

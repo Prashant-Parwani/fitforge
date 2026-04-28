@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// API key: edit src/config.js to set your OpenRouter key (one file, all AI features)
+// API key: set VITE_OPENROUTER_API_KEY in .env and in Vercel.
 // ─────────────────────────────────────────────────────────────────────────────
 import { OPENROUTER_API_KEY, AI_MODEL, AI_URL, getAIErrorMessage } from '../config'
 
@@ -111,7 +111,7 @@ export default function Coach() {
   const sendMessage = async (text) => {
     const userText = (text || input).trim()
     if (!userText || loading) return
-    if (keyNotSet) { setError('Add your OpenRouter API key in src/config.js to use the AI Coach.'); return }
+    if (keyNotSet) { setError('Set VITE_OPENROUTER_API_KEY in your local .env and in Vercel Environment Variables.'); return }
 
     setError('')
     setInput('')
@@ -214,7 +214,7 @@ export default function Coach() {
       {/* ── API key banner ── */}
       {keyNotSet && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 flex-shrink-0">
-          <p className="text-xs text-amber-800 font-medium">Setup: Open <code className="bg-amber-100 px-1 rounded">src/config.js</code> and paste your OpenRouter API key.</p>
+          <p className="text-xs text-amber-800 font-medium">Setup: set <code className="bg-amber-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> in your local .env and in Vercel.</p>
         </div>
       )}
 

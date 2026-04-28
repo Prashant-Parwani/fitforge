@@ -154,7 +154,7 @@ export default function Diet() {
   const [insightError, setInsightError]     = useState('')
 
   const analyseMyDay = async () => {
-    if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.startsWith('PASTE_')) { setInsightError('Add your OpenRouter API key in src/config.js'); return }
+    if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.startsWith('PASTE_')) { setInsightError('Set VITE_OPENROUTER_API_KEY in .env and Vercel.'); return }
     if (foodLog.length < 2) { setInsightError('Log at least 2 foods first to get an analysis.'); return }
     setInsightLoading(true)
     setInsightError('')
@@ -190,7 +190,7 @@ Return this exact JSON:
 
   const generateMealPlan = async (dayToRegen = null) => {
     if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.startsWith('PASTE_')) {
-      setAiError('Add your OpenRouter API key in src/config.js.')
+      setAiError('Set VITE_OPENROUTER_API_KEY in .env and Vercel.')
       return
     }
     setAiLoading(true)
