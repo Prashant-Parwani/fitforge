@@ -292,8 +292,6 @@ export default function FloatingCoach() {
               }`}
               title={listening ? 'Stop listening' : 'Voice input'}
             >
-
-              
               🎤
             </button>
             <button
