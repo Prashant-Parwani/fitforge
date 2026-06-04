@@ -15,6 +15,8 @@ create table if not exists public.profiles (
 );
 
 alter table public.profiles add column if not exists goal text;
+alter table public.profiles add column if not exists email text;
+alter table public.profiles add column if not exists avatar_url text;
 alter table public.profiles add column if not exists weight numeric;
 alter table public.profiles add column if not exists height numeric;
 alter table public.profiles add column if not exists onboarded boolean default false;
@@ -45,3 +47,65 @@ for update
 to authenticated
 using ((select auth.uid()) = user_id)
 with check ((select auth.uid()) = user_id);
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  display_name text;
+  avatar text;
+begin
+  display_name := coalesce(
+    new.raw_user_meta_data->>'full_name',
+    new.raw_user_meta_data->>'name',
+    split_part(new.email, '@', 1)
+  );
+
+  avatar := coalesce(
+    new.raw_user_meta_data->>'avatar_url',
+    new.raw_user_meta_data->>'picture'
+  );
+
+  insert into public.profiles (
+    user_id,
+    email,
+    full_name,
+    avatar_url,
+    onboarded,
+    app_data
+  )
+  values (
+    new.id,
+    new.email,
+    display_name,
+    avatar,
+    false,
+    jsonb_build_object(
+      'id', new.id,
+      'name', display_name,
+      'email', new.email,
+      'avatarUrl', avatar,
+      'onboarded', false
+    )
+  )
+  on conflict (user_id) do update
+  set
+    email = excluded.email,
+    full_name = coalesce(public.profiles.full_name, excluded.full_name),
+    avatar_url = coalesce(excluded.avatar_url, public.profiles.avatar_url),
+    app_data = public.profiles.app_data || excluded.app_data,
+    updated_at = now();
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+
+create trigger on_auth_user_created
+after insert on auth.users
+for each row
+execute function public.handle_new_user();

@@ -9,8 +9,9 @@ function mapSupabaseUser(supabaseUser, profile) {
   return {
     ...appData,
     id: supabaseUser.id,
-    name: profile?.full_name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0],
+    name: profile?.full_name || supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0],
     email: supabaseUser.email,
+    avatarUrl: profile?.avatar_url || supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture || '',
     goal: profile?.goal || supabaseUser.user_metadata?.goal || '',
     weight: profile?.weight || supabaseUser.user_metadata?.weight || '',
     height: profile?.height || supabaseUser.user_metadata?.height || '',
@@ -23,7 +24,9 @@ async function persistUser(appUser) {
 
   const profile = {
     user_id: appUser.id,
+    email: appUser.email || null,
     full_name: appUser.name || null,
+    avatar_url: appUser.avatarUrl || null,
     goal: appUser.goal || null,
     weight: appUser.weight ? Number(appUser.weight) : null,
     height: appUser.height ? Number(appUser.height) : null,
@@ -59,6 +62,7 @@ export function AuthProvider({ children }) {
             .maybeSingle()
 
           const appUser = mapSupabaseUser(data.user, profile)
+          if (!profile) await persistUser(appUser)
           setUser(appUser)
           localStorage.setItem('fitforge_user', JSON.stringify(appUser))
         }
@@ -77,6 +81,21 @@ export function AuthProvider({ children }) {
     setUser(u)
     localStorage.setItem('fitforge_user', JSON.stringify(u))
     persistUser(u)
+  }
+
+  const loginWithGoogle = async () => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase is not configured yet. Add your project URL and publishable key.')
+    }
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/onboarding`,
+      },
+    })
+
+    if (error) throw error
   }
 
   const updateUser = (updates) => {
@@ -152,7 +171,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      user, login, logout, updateUser, loading,
+      user, login, loginWithGoogle, logout, updateUser, loading,
       getWaterToday, addWater, removeWater, getStreak, todayStr,
     }}>
       {!loading && children}

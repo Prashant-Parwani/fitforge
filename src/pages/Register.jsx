@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { FcGoogle } from 'react-icons/fc'
 import { useAuth } from '../context/AuthContext'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 
@@ -9,8 +10,21 @@ export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '', goal: '', weight: '', height: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const { login, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
+
+  const handleGoogleLogin = async () => {
+    setError('')
+    setGoogleLoading(true)
+
+    try {
+      await loginWithGoogle()
+    } catch (err) {
+      setGoogleLoading(false)
+      setError(err.message || 'Google login failed.')
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -97,6 +111,15 @@ export default function Register() {
         </div>
         <form onSubmit={handleSubmit} className="animate-fade-up delay-100 bg-cream rounded-2xl p-8 border border-brown-200 shadow-sm">
           {error && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-5">{error}</div>}
+          <button type="button" onClick={handleGoogleLogin} disabled={googleLoading || loading} className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-brown-200 bg-white text-brown-800 font-medium hover:bg-brown-50 transition-colors disabled:opacity-50 mb-5">
+            <FcGoogle className="text-xl" />
+            {googleLoading ? 'Connecting...' : 'Continue with Google'}
+          </button>
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-px flex-1 bg-brown-200" />
+            <span className="text-xs uppercase tracking-wide text-brown-400">or</span>
+            <div className="h-px flex-1 bg-brown-200" />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-brown-700 mb-2">Full Name *</label>
