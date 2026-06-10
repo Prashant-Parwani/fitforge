@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { FiActivity, FiArrowRight, FiBarChart2, FiCamera, FiCheck, FiClock, FiCpu, FiGrid, FiPlay, FiPlus, FiTarget, FiTrendingUp, FiZap } from 'react-icons/fi'
 
 const features = [
   { emoji: '🏋️', title: 'Machine Encyclopedia', desc: 'Every gym machine with proper form, targeted muscles & how-to videos.', to: '/machines', color: 'from-brown-400 to-brown-600' },

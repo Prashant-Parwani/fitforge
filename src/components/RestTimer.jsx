@@ -50,8 +50,16 @@ export default function RestTimer({ seconds = 60, onDone, onSkip }) {
           <div className="text-xs text-brown-400">sec</div>
         </div>
       </div>
-      <p className="text-xs text-brown-500">Rest timer — breathe and recover</p>
-      <div className="flex gap-2">
+      <p className="text-xs text-brown-500">Rest timer - breathe and recover</p>
+      <div className="flex flex-wrap justify-center gap-2">
+        <button onClick={() => { setRemaining(30); setActive(true) }}
+          className="text-xs px-4 py-1.5 rounded-full border border-brown-300 text-brown-600 hover:bg-brown-100 transition-colors">
+          30 sec
+        </button>
+        <button onClick={() => { setRemaining(60); setActive(true) }}
+          className="text-xs px-4 py-1.5 rounded-full border border-brown-300 text-brown-600 hover:bg-brown-100 transition-colors">
+          60 sec
+        </button>
         <button onClick={() => { setActive(false); onSkip?.() }}
           className="text-xs px-4 py-1.5 rounded-full border border-brown-300 text-brown-600 hover:bg-brown-100 transition-colors">
           Skip Rest

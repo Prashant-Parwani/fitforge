@@ -3,15 +3,64 @@ import { useAuth } from '../context/AuthContext'
 import { weekPlan } from '../data/workoutPlan'
 import { Link } from 'react-router-dom'
 
-const FOCUS_OPTIONS = ['Chest','Back','Legs','Shoulders','Arms','Core','Cardio','Full Body','Rest']
+const FOCUS_OPTIONS = [
+  'Chest','Triceps','Chest + Triceps','Chest + Shoulders','Chest + Core',
+  'Back','Biceps','Back + Biceps','Back + Traps',
+  'Legs','Legs + Cardio','Legs + Core','Glutes + Hamstrings',
+  'Shoulders','Shoulders + Traps','Shoulders + Core','Shoulders + Arms',
+  'Arms','Core','Cardio','Cardio + Core',
+  'Upper Body','Lower Body','Full Body','Mobility','Rest'
+]
 
 const focusColor = (focus) => {
-  const map = {
-    Chest:'bg-red-500', Back:'bg-blue-600', Legs:'bg-green-600',
-    Shoulders:'bg-purple-600', Arms:'bg-orange-500', Core:'bg-yellow-500',
-    Cardio:'bg-teal-500', 'Full Body':'bg-brown-600', Rest:'bg-brown-300',
+  if (!focus) return 'bg-brown-400'
+  if (focus === 'Rest') return 'bg-brown-300'
+  if (focus.includes('Chest')) return 'bg-red-500'
+  if (focus.includes('Back')) return 'bg-blue-600'
+  if (focus.includes('Leg') || focus.includes('Glutes') || focus.includes('Hamstrings')) return 'bg-green-600'
+  if (focus.includes('Shoulder') || focus.includes('Trap')) return 'bg-purple-600'
+  if (focus.includes('Arm') || focus.includes('Bicep') || focus.includes('Tricep')) return 'bg-orange-500'
+  if (focus.includes('Cardio') || focus.includes('Mobility')) return 'bg-teal-500'
+  if (focus.includes('Core')) return 'bg-yellow-500'
+  if (focus.includes('Full') || focus.includes('Upper') || focus.includes('Lower')) return 'bg-brown-600'
+  return 'bg-brown-400'
+}
+
+const FOCUS_ALIASES = {
+  Triceps: 'Arms',
+  Biceps: 'Arms',
+  Cardio: 'Cardio + Core',
+  'Back + Traps': 'Shoulders + Traps',
+  'Glutes + Hamstrings': 'Lower Body',
+  Rest: 'Rest & Recovery',
+}
+
+const findPlan = (focus) => {
+  const target = FOCUS_ALIASES[focus] || focus
+  return weekPlan.find(d => d.focus === target)
+}
+
+const buildComboPlan = (focus, fallbackDay) => {
+  const exact = findPlan(focus)
+  if (exact) return { ...exact, focus }
+
+  if (!focus?.includes('+')) return weekPlan[fallbackDay]
+
+  const parts = focus.split('+').map(part => part.trim())
+  const partPlans = parts.map(findPlan).filter(Boolean)
+  if (!partPlans.length) return weekPlan[fallbackDay]
+
+  return {
+    ...partPlans[0],
+    focus,
+    goal: `Balanced ${focus.toLowerCase()} session with the best-matching exercises`,
+    warmup: partPlans[0].warmup,
+    exercises: partPlans.flatMap((plan, index) =>
+      plan.exercises.slice(0, index === 0 ? 3 : 2)
+    ),
+    cooldown: partPlans[partPlans.length - 1].cooldown,
+    totalTime: '55-70 min',
   }
-  return map[focus] || 'bg-brown-400'
 }
 
 export default function WorkoutPlan() {
@@ -25,7 +74,7 @@ export default function WorkoutPlan() {
 
   // Get full plan data for active day from the default plan
   const activeSplit  = split[activeDay]
-  const defaultPlan  = weekPlan.find(d => d.focus === activeSplit.focus) || weekPlan[activeDay]
+  const defaultPlan  = buildComboPlan(activeSplit.focus, activeDay)
 
   const updateFocus = (idx, newFocus) => {
     const newSplit = split.map((d, i) => i === idx ? { ...d, focus: newFocus } : d)

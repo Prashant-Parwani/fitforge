@@ -82,10 +82,12 @@ const WORKOUT_PATTERNS = [
 ]
 
 const CUSTOM_FOCUS = [
-  'Chest','Triceps','Chest + Triceps','Back','Biceps','Back + Biceps',
-  'Legs','Shoulders','Shoulders + Traps','Arms','Core','Cardio',
-  'Chest + Shoulders','Upper Body','Lower Body','Full Body',
-  'Cardio + Core','Legs + Cardio','Rest'
+  'Chest','Triceps','Chest + Triceps','Chest + Shoulders','Chest + Core',
+  'Back','Biceps','Back + Biceps','Back + Traps',
+  'Legs','Legs + Cardio','Legs + Core','Glutes + Hamstrings',
+  'Shoulders','Shoulders + Traps','Shoulders + Core','Shoulders + Arms',
+  'Arms','Core','Cardio','Cardio + Core',
+  'Upper Body','Lower Body','Full Body','Mobility','Rest'
 ]
 
 const focusColor = (focus) => {

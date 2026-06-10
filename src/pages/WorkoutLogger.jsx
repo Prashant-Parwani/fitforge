@@ -3,11 +3,56 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import RestTimer from '../components/RestTimer'
 import { machines } from '../data/machines'
+import { FiActivity, FiArrowLeft, FiArrowRight, FiCheck, FiPlus, FiSearch, FiTarget, FiZap } from 'react-icons/fi'
 
 // Group machines by category for picker
 const CATEGORY_LABELS = {
   chest: 'Chest', back: 'Back', legs: 'Legs',
   shoulders: 'Shoulders', arms: 'Arms', core: 'Core', cardio: 'Cardio', full: 'Full Body'
+}
+
+const CATEGORY_SHORT = {
+  chest: 'CH', back: 'BK', legs: 'LG',
+  shoulders: 'SH', arms: 'AR', core: 'CO', cardio: 'CA', full: 'FB'
+}
+
+const focusParts = (focus = '') => focus
+  .replace('Rest & Recovery', 'Rest')
+  .split('+')
+  .map(part => part.trim())
+  .filter(Boolean)
+
+const muscleText = (machine) => `${machine.category} ${machine.name} ${machine.muscles.join(' ')}`.toLowerCase()
+
+const exerciseMatchesFocus = (machine, focus) => {
+  const text = muscleText(machine)
+  return focusParts(focus).some(part => {
+    const p = part.toLowerCase()
+    if (p === 'chest') return machine.category === 'chest' || text.includes('pectoral')
+    if (p === 'back') return machine.category === 'back' || text.includes('lat') || text.includes('rhomboid')
+    if (p === 'legs') return machine.category === 'legs' || text.includes('quad') || text.includes('hamstring') || text.includes('calf')
+    if (p === 'shoulders') return machine.category === 'shoulders' || text.includes('deltoid')
+    if (p === 'triceps') return text.includes('tricep')
+    if (p === 'biceps') return text.includes('bicep')
+    if (p === 'arms') return machine.category === 'arms' || text.includes('bicep') || text.includes('tricep')
+    if (p === 'core') return machine.category === 'core' || text.includes('abdom') || text.includes('core')
+    if (p === 'cardio') return machine.category === 'cardio'
+    if (p === 'full body') return machine.category === 'full'
+    if (p.includes('trap')) return text.includes('trap')
+    if (p.includes('glute') || p.includes('hamstring')) return text.includes('glute') || text.includes('hamstring')
+    return text.includes(p)
+  })
+}
+
+const filterIdForFocusPart = (part) => {
+  const p = part.toLowerCase()
+  if (p === 'triceps') return 'triceps'
+  if (p === 'biceps') return 'biceps'
+  if (p.includes('trap')) return 'traps'
+  if (p.includes('glute')) return 'glutes'
+  if (p.includes('hamstring')) return 'hamstrings'
+  if (p === 'full body') return 'full'
+  return p
 }
 
 // Estimate 1RM using Epley formula
@@ -27,10 +72,17 @@ export default function WorkoutLogger() {
   const [showTimer, setShowTimer]   = useState(false)
   const [timerKey, setTimerKey]     = useState(0)
   const [search, setSearch]         = useState('')
-  const [activeCategory, setActiveCategory] = useState('all')
+  const [activeCategory, setActiveCategory] = useState('today')
   const [elapsed, setElapsed]       = useState(0)
   const [sessionStarted, setSessionStarted] = useState(false)
   const [newPR, setNewPR]           = useState(null)
+  const [entryOpen, setEntryOpen]   = useState(true)
+
+  const dayOfWeek = new Date().getDay()
+  const todayIdx = [6, 0, 1, 2, 3, 4, 5][dayOfWeek]
+  const todayFocus = user?.customSplit?.[todayIdx]?.focus || 'Full Body'
+  const todayLabel = todayFocus === 'Rest' ? 'Today' : `Today - ${todayFocus}`
+  const focusFilters = focusParts(todayFocus).filter(part => part !== 'Rest')
 
   // Elapsed timer
   const elapsedRef = useRef(null)
@@ -44,7 +96,15 @@ export default function WorkoutLogger() {
   const fmtTime = (s) => `${Math.floor(s / 60).toString().padStart(2,'0')}:${(s % 60).toString().padStart(2,'0')}`
 
   const filteredMachines = machines.filter(m => {
-    const matchCat    = activeCategory === 'all' || m.category === activeCategory
+    const matchCat =
+      activeCategory === 'today' ? exerciseMatchesFocus(m, todayFocus) :
+      activeCategory === 'all' ? true :
+      activeCategory === 'triceps' ? muscleText(m).includes('tricep') :
+      activeCategory === 'biceps' ? muscleText(m).includes('bicep') :
+      activeCategory === 'traps' ? muscleText(m).includes('trap') :
+      activeCategory === 'glutes' ? muscleText(m).includes('glute') :
+      activeCategory === 'hamstrings' ? muscleText(m).includes('hamstring') :
+      m.category === activeCategory
     const matchSearch = search === '' ||
       m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.muscles.some(mu => mu.toLowerCase().includes(search.toLowerCase()))
@@ -57,6 +117,7 @@ export default function WorkoutLogger() {
     setWeight('')
     setReps('')
     setShowTimer(false)
+    setEntryOpen(true)
     setPhase('logging')
     if (!sessionStarted) setSessionStarted(true)
   }
@@ -76,6 +137,7 @@ export default function WorkoutLogger() {
     setSets(prev => [...prev, newSet])
     setWeight('')
     setReps('')
+    setEntryOpen(false)
 
     if (isPR) {
       setNewPR({ exercise: selectedEx.name, oneRM: rm })
@@ -102,9 +164,9 @@ export default function WorkoutLogger() {
     clearInterval(elapsedRef.current)
 
     const totalSets = sessionExs.reduce((acc, ex) => acc + ex.sets.length, 0)
-    const focus     = sessionExs[0]?.category
-      ? CATEGORY_LABELS[sessionExs[0].category] || 'Mixed'
-      : 'Mixed'
+    const focus     = todayFocus && todayFocus !== 'Rest' ? todayFocus : (
+      sessionExs[0]?.category ? CATEGORY_LABELS[sessionExs[0].category] || 'Mixed' : 'Mixed'
+    )
 
     const entry = {
       id:        Date.now(),
@@ -141,7 +203,7 @@ export default function WorkoutLogger() {
             {sessionStarted && (
               <button onClick={finishWorkout}
                 className="btn-primary text-sm py-2 px-4">
-                Finish ✓
+                Finish
               </button>
             )}
           </div>
@@ -149,10 +211,10 @@ export default function WorkoutLogger() {
           {/* PR toast */}
           {newPR && (
             <div className="animate-fade-up bg-amber-50 border border-amber-300 rounded-2xl px-4 py-3 mb-4 flex items-center gap-2">
-              <span className="text-xl">🏆</span>
+              <FiZap className="text-amber-700 flex-shrink-0" />
               <div>
                 <div className="text-sm font-semibold text-amber-800">New Personal Record!</div>
-                <div className="text-xs text-amber-600">{newPR.exercise} — {newPR.oneRM}kg estimated 1RM</div>
+                <div className="text-xs text-amber-600">{newPR.exercise} - {newPR.oneRM}kg estimated 1RM</div>
               </div>
             </div>
           )}
@@ -172,7 +234,7 @@ export default function WorkoutLogger() {
 
           {/* Search */}
           <div className="relative mb-3">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brown-400 text-sm">🔍</span>
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-brown-400 text-sm" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search exercises or muscles..."
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-brown-200 bg-cream text-brown-800 placeholder-brown-300 focus:outline-none focus:border-brown-400 text-sm"/>
@@ -180,7 +242,11 @@ export default function WorkoutLogger() {
 
           {/* Category tabs */}
           <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
-            {[{id:'all',label:'All'}, ...Object.entries(CATEGORY_LABELS).map(([id,label]) => ({id,label}))].map(cat => (
+            {[
+              { id: 'today', label: todayLabel },
+              ...focusFilters.map(part => ({ id: filterIdForFocusPart(part), label: part })),
+              { id: 'all', label: 'All' },
+            ].map(cat => (
               <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
                 className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                   activeCategory === cat.id
@@ -198,13 +264,13 @@ export default function WorkoutLogger() {
               <button key={m.id} onClick={() => selectExercise(m)}
                 className="flex items-center gap-3 bg-cream rounded-xl border border-brown-200 p-3 hover:border-brown-400 hover:bg-brown-50 transition-all text-left group">
                 <div className="w-10 h-10 bg-brown-100 rounded-lg flex items-center justify-center text-lg flex-shrink-0 group-hover:bg-brown-200 transition-colors">
-                  {m.image || '🏋️'}
+                  <span className="text-[11px] font-bold tracking-wide text-brown-600">{CATEGORY_SHORT[m.category] || 'EX'}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-brown-900 truncate">{m.name}</div>
                   <div className="text-xs text-brown-400 truncate">{m.muscles.slice(0,2).join(', ')}</div>
                 </div>
-                <span className="text-brown-300 text-sm group-hover:text-brown-500">→</span>
+                <FiArrowRight className="text-brown-300 text-sm group-hover:text-brown-500" />
               </button>
             ))}
           </div>
@@ -225,18 +291,20 @@ export default function WorkoutLogger() {
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <button onClick={() => { setPhase('picker'); setShowTimer(false) }}
-              className="text-brown-500 text-sm hover:text-brown-700">← Back</button>
+              className="text-brown-500 text-sm hover:text-brown-700 inline-flex items-center gap-1">
+              <FiArrowLeft /> Back
+            </button>
             <span className="text-sm text-brown-500 font-mono">{fmtTime(elapsed)}</span>
           </div>
 
           <h2 className="font-display text-2xl font-bold text-brown-900 mb-1">{selectedEx?.name}</h2>
-          <p className="text-sm text-brown-500 mb-1">{selectedEx?.muscles?.slice(0,3).join(' · ')}</p>
+          <p className="text-sm text-brown-500 mb-1">{selectedEx?.muscles?.slice(0,3).join(' - ')}</p>
           <p className="text-xs text-brown-400 mb-5">Recommended: {selectedEx?.sets}</p>
 
           {/* Previous PR */}
           {prevPR && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-4 flex items-center gap-2">
-              <span>🏆</span>
+              <FiZap className="text-amber-700 flex-shrink-0" />
               <span className="text-xs text-amber-700">Your PR: <strong>{prevPR}kg</strong> estimated 1RM</span>
             </div>
           )}
@@ -271,7 +339,14 @@ export default function WorkoutLogger() {
           )}
 
           {/* Input row */}
-          {!showTimer && (
+          {!showTimer && !entryOpen && (
+            <button onClick={() => setEntryOpen(true)}
+              className="w-full mb-4 py-3 rounded-xl border border-brown-300 text-brown-700 bg-cream hover:bg-brown-50 text-sm font-medium transition-all inline-flex items-center justify-center gap-2">
+              <FiPlus /> Add Set {sets.length + 1}
+            </button>
+          )}
+
+          {!showTimer && entryOpen && (
             <div className="bg-cream rounded-2xl border border-brown-200 p-4 mb-4">
               <div className="text-xs font-medium text-brown-500 uppercase tracking-wider mb-3">
                 Set {sets.length + 1}
@@ -298,8 +373,8 @@ export default function WorkoutLogger() {
                 </p>
               )}
               <button onClick={logSet} disabled={!weight || !reps}
-                className="btn-primary w-full py-3 text-base disabled:opacity-40">
-                ✓ Log Set {sets.length + 1}
+                className="btn-primary w-full py-3 text-base disabled:opacity-40 inline-flex items-center justify-center gap-2">
+                <FiCheck /> Log Set {sets.length + 1}
               </button>
             </div>
           )}
@@ -311,13 +386,13 @@ export default function WorkoutLogger() {
                 ? 'border-brown-400 text-brown-700 hover:bg-brown-100'
                 : 'border-brown-200 text-brown-400'
             }`}>
-            {sets.length > 0 ? 'Done with this exercise →' : 'Skip & choose another →'}
+            {sets.length > 0 ? 'Done with this exercise ->' : 'Skip and choose another ->'}
           </button>
 
           {/* Pro tip */}
           {selectedEx?.tip && (
             <div className="mt-4 bg-brown-50 rounded-xl p-3 border border-brown-200">
-              <div className="text-xs font-medium text-brown-500 mb-0.5">💡 Trainer tip</div>
+              <div className="text-xs font-medium text-brown-500 mb-0.5 flex items-center gap-1"><FiTarget /> Trainer tip</div>
               <p className="text-xs text-brown-600 leading-relaxed">{selectedEx.tip}</p>
             </div>
           )}
@@ -335,7 +410,9 @@ export default function WorkoutLogger() {
     return (
       <main className="pt-20 pb-24 min-h-screen flex items-center justify-center px-4">
         <div className="max-w-sm w-full text-center">
-          <div className="text-6xl mb-4">🎉</div>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-brown-500 text-cream flex items-center justify-center">
+            <FiCheck className="text-3xl" />
+          </div>
           <h1 className="font-display text-3xl font-bold text-brown-900 mb-2">Workout Complete!</h1>
           <p className="text-brown-500 mb-8">Great session. Recovery starts now.</p>
 
@@ -363,7 +440,7 @@ export default function WorkoutLogger() {
           </div>
 
           <button onClick={() => navigate('/')} className="btn-primary w-full py-3 text-base">
-            Back to Dashboard →
+            Back to Dashboard ->
           </button>
         </div>
       </main>
