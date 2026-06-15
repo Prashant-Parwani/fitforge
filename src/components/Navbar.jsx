@@ -34,6 +34,9 @@ export default function Navbar() {
   }, [drawerOpen])
 
   const handleLogout = () => { logout(); navigate('/') }
+  const visibleLinks = user
+    ? [{ to: '/dashboard', label: 'Dashboard', emoji: 'FF' }, ...navLinks]
+    : navLinks
 
   return (
     <>
@@ -50,7 +53,7 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <ul className="hidden md:flex items-center gap-1">
-            {navLinks.map(link => (
+            {visibleLinks.map(link => (
               <li key={link.to}>
                 <Link to={link.to}
                   className={`px-3 py-2 rounded-lg text-sm font-body font-medium transition-all duration-200 flex items-center gap-1.5 ${
@@ -126,7 +129,7 @@ export default function Navbar() {
         {/* Mobile dropdown */}
         <div className={`md:hidden overflow-hidden transition-all duration-300 bg-cream border-t border-brown-200 ${menuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
           <ul className="px-4 py-3 flex flex-col gap-1">
-            {navLinks.map(link => (
+            {visibleLinks.map(link => (
               <li key={link.to}>
                 <Link to={link.to}
                   className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all ${

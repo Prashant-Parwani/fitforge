@@ -1,28 +1,37 @@
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { FiEdit3, FiMenu, FiMessageSquare, FiPlus, FiSend, FiSidebar, FiTrash2, FiX } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// API key: set VITE_OPENROUTER_API_KEY in .env and in Vercel.
-// ─────────────────────────────────────────────────────────────────────────────
 import { OPENROUTER_API_KEY, AI_MODEL, AI_URL, getAIErrorMessage } from '../config'
 
 const SUGGESTED_QUESTIONS = [
   'What should I eat today to hit my protein goal?',
-  'Is my chest sore from overtraining?',
   'Build me a meal plan for tomorrow',
-  'How much water should I drink on gym days?',
   'What are the best exercises for building arms?',
   'Should I eat before or after my morning workout?',
   'How long should I rest between sets?',
   'What supplements actually work?',
 ]
 
+const makeSession = () => ({
+  id: String(Date.now()),
+  title: 'New fitness chat',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  messages: [],
+})
+
+function buildTitle(text) {
+  const clean = text.trim().replace(/\s+/g, ' ')
+  if (!clean) return 'New fitness chat'
+  return clean.length > 42 ? `${clean.slice(0, 42)}...` : clean
+}
+
 function buildSystemPrompt(user) {
   const split = user?.customSplit
     ? user.customSplit.map(d => `${d.day}: ${d.focus}`).join(', ')
     : 'Standard 7-day split'
 
-  return `You are FitForge AI Coach — a friendly, expert personal trainer and nutritionist with 30 years of experience. You know this user personally from their profile.
+  return `You are FitForge AI Coach, a friendly expert personal trainer and nutritionist with 30 years of experience. You know this user personally from their profile.
 
 USER PROFILE:
 - Name: ${user?.name || 'the user'}
@@ -37,41 +46,27 @@ USER PROFILE:
 - Member since: ${user?.startDate || 'Recently joined'}
 - Workouts logged: ${user?.workoutLog?.length || 0}
 
-YOUR PERSONALITY AND STYLE:
-- Talk like a knowledgeable friend, not a textbook
-- Be direct and specific — give exact numbers, foods, and exercises
-- Use the user's name occasionally to make it personal
-- Keep responses concise — 3-5 sentences max unless they ask for a full plan
-- Be encouraging but honest — don't sugarcoat if they're doing something wrong
-- Reference their profile data naturally (their goal, weight, split)
-- For Indian users: suggest Indian foods (dal, paneer, roti, dahi) as default options
-- Never recommend dangerous practices — always safe, evidence-based advice
-
-WHAT YOU KNOW:
-- Nutrition: macros, meal timing, calorie targets, Indian and international foods
-- Training: exercise form, progressive overload, recovery, muscle groups
-- Supplements: creatine, whey, vitamins — what works and what doesn't
-- Injury prevention and recovery
-- Sleep, hydration, and lifestyle factors
-
-Respond in plain text without markdown formatting. No bullet points unless the user explicitly asks for a list.`
+STYLE:
+- Talk like a knowledgeable gym friend, not a textbook.
+- Be direct and specific with exact foods, numbers, sets, reps, and form cues.
+- Keep replies concise unless the user asks for a full plan.
+- For Indian users, suggest Indian foods like dal, paneer, roti, dahi, eggs, chicken, rice, and sprouts.
+- Give safe, evidence-based fitness guidance.`
 }
 
 function ChatBubble({ message }) {
   const isUser = message.role === 'user'
   return (
-    <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
-      {/* Avatar */}
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5 ${
-        isUser ? 'bg-brown-500 text-cream' : 'bg-brown-800 text-cream'
-      }`}>
-        {isUser ? '👤' : '🤖'}
-      </div>
-      {/* Bubble */}
-      <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+    <div className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
+      {!isUser && (
+        <div className="w-9 h-9 rounded-full bg-brown-900 text-cream flex items-center justify-center text-sm font-bold flex-shrink-0">
+          AI
+        </div>
+      )}
+      <div className={`max-w-[min(760px,82%)] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
         isUser
-          ? 'bg-brown-500 text-cream rounded-tr-sm'
-          : 'bg-cream border border-brown-200 text-brown-800 rounded-tl-sm'
+          ? 'bg-brown-600 text-cream rounded-tr-md'
+          : 'bg-cream border border-brown-200 text-brown-900 rounded-tl-md'
       }`}>
         {message.content}
         {message.streaming && (
@@ -83,47 +78,107 @@ function ChatBubble({ message }) {
 }
 
 export default function Coach() {
-  const { user, updateUser }    = useAuth()
-  const [messages, setMessages] = useState(() => {
-    // Load persisted chat (capped at 50)
-    try {
-      const saved = user?.chatHistory
-      return saved?.length ? saved : []
-    } catch { return [] }
+  const { user, updateUser } = useAuth()
+  const [sessions, setSessions] = useState(() => {
+    const saved = user?.aiCoachChats
+    if (saved?.length) return saved
+    if (user?.chatHistory?.length) {
+      return [{
+        id: 'legacy-chat',
+        title: buildTitle(user.chatHistory.find(m => m.role === 'user')?.content || 'Previous AI coach chat'),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        messages: user.chatHistory,
+      }]
+    }
+    return [makeSession()]
   })
-  const [input, setInput]     = useState('')
+  const [activeId, setActiveId] = useState(() => user?.activeCoachChatId || user?.aiCoachChats?.[0]?.id || 'legacy-chat')
+  const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState('')
-  const bottomRef             = useRef(null)
-  const inputRef              = useRef(null)
+  const [error, setError] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const bottomRef = useRef(null)
+  const inputRef = useRef(null)
 
   const keyNotSet = !OPENROUTER_API_KEY || OPENROUTER_API_KEY.startsWith('PASTE_')
+  const activeSession = useMemo(() => sessions.find(s => s.id === activeId) || sessions[0], [sessions, activeId])
+  const messages = activeSession?.messages || []
+
+  useEffect(() => {
+    if (!sessions.find(s => s.id === activeId) && sessions[0]) setActiveId(sessions[0].id)
+  }, [sessions, activeId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [messages.length, activeId])
 
-  const saveHistory = (msgs) => {
-    const capped = msgs.slice(-50) // keep last 50 messages
-    updateUser({ chatHistory: capped })
+  const persistSessions = (nextSessions, nextActiveId = activeId) => {
+    const compact = nextSessions
+      .map(session => ({ ...session, messages: session.messages.slice(-60) }))
+      .slice(0, 20)
+    setSessions(compact)
+    updateUser({ aiCoachChats: compact, activeCoachChatId: nextActiveId, chatHistory: compact.find(s => s.id === nextActiveId)?.messages || [] })
+  }
+
+  const updateActiveSession = (updater) => {
+    const nextSessions = sessions.map(session => session.id === activeSession.id ? updater(session) : session)
+    persistSessions(nextSessions, activeSession.id)
+    return nextSessions.find(session => session.id === activeSession.id)
+  }
+
+  const startNewChat = () => {
+    const session = makeSession()
+    const next = [session, ...sessions]
+    setActiveId(session.id)
+    setInput('')
+    setError('')
+    setSidebarOpen(false)
+    persistSessions(next, session.id)
+    setTimeout(() => inputRef.current?.focus(), 100)
+  }
+
+  const deleteSession = (id) => {
+    const next = sessions.filter(session => session.id !== id)
+    const fallback = next[0] || makeSession()
+    const finalSessions = next.length ? next : [fallback]
+    const nextActiveId = id === activeId ? fallback.id : activeId
+    setActiveId(nextActiveId)
+    persistSessions(finalSessions, nextActiveId)
+  }
+
+  const clearActiveChat = () => {
+    updateActiveSession(session => ({
+      ...session,
+      title: 'New fitness chat',
+      updatedAt: new Date().toISOString(),
+      messages: [],
+    }))
   }
 
   const sendMessage = async (text) => {
     const userText = (text || input).trim()
     if (!userText || loading) return
-    if (keyNotSet) { setError('Set VITE_OPENROUTER_API_KEY in your local .env and in Vercel Environment Variables.'); return }
+    if (keyNotSet) {
+      setError('Set VITE_OPENROUTER_API_KEY in your local .env and in Vercel Environment Variables.')
+      return
+    }
 
     setError('')
     setInput('')
+    setSidebarOpen(false)
 
-    const userMsg  = { role: 'user', content: userText }
-    const newMsgs  = [...messages, userMsg]
-    setMessages(newMsgs)
+    const userMsg = { role: 'user', content: userText, id: Date.now() }
+    const baseMessages = [...messages, userMsg]
+    const placeholderId = Date.now() + 1
+
+    updateActiveSession(session => ({
+      ...session,
+      title: session.messages.length ? session.title : buildTitle(userText),
+      updatedAt: new Date().toISOString(),
+      messages: [...baseMessages, { role: 'assistant', content: '', streaming: true, id: placeholderId }],
+    }))
     setLoading(true)
-
-    // Add empty AI message to stream into
-    const aiMsgId  = Date.now()
-    setMessages(prev => [...prev, { role: 'assistant', content: '', streaming: true, id: aiMsgId }])
 
     try {
       const response = await fetch(AI_URL, {
@@ -136,11 +191,11 @@ export default function Coach() {
         },
         body: JSON.stringify({
           model: AI_MODEL,
-          max_tokens: 600,
-          temperature: 0.8,
+          max_tokens: 700,
+          temperature: 0.75,
           messages: [
             { role: 'system', content: buildSystemPrompt(user) },
-            ...newMsgs.map(m => ({ role: m.role, content: m.content })),
+            ...baseMessages.map(m => ({ role: m.role, content: m.content })),
           ],
         }),
       })
@@ -150,28 +205,43 @@ export default function Coach() {
         throw new Error(getAIErrorMessage(response.status, err?.error?.message))
       }
 
-      const data    = await response.json()
-      const aiText  = data?.choices?.[0]?.message?.content || "I couldn't generate a response. Please try again."
-
-      // Simulate streaming by revealing text progressively
+      const data = await response.json()
+      const aiText = data?.choices?.[0]?.message?.content || "I couldn't generate a response. Please try again."
       const words = aiText.split(' ')
-      let built   = ''
-      for (let i = 0; i < words.length; i++) {
+      let built = ''
+
+      for (let i = 0; i < words.length; i += 1) {
         built += (i > 0 ? ' ' : '') + words[i]
         const snapshot = built
-        setMessages(prev => prev.map(m =>
-          m.id === aiMsgId ? { ...m, content: snapshot, streaming: i < words.length - 1 } : m
+        setSessions(prev => prev.map(session => session.id === activeSession.id
+          ? {
+              ...session,
+              messages: session.messages.map(message => message.id === placeholderId
+                ? { ...message, content: snapshot, streaming: i < words.length - 1 }
+                : message
+              ),
+            }
+          : session
         ))
-        if (i < words.length - 1) await new Promise(r => setTimeout(r, 18))
+        if (i < words.length - 1) await new Promise(resolve => setTimeout(resolve, 16))
       }
 
-      // Finalise and save
-      const finalMsgs = [...newMsgs, { role: 'assistant', content: aiText }]
-      setMessages(finalMsgs)
-      saveHistory(finalMsgs)
-
+      const finalSessions = sessions.map(session => session.id === activeSession.id
+        ? {
+            ...session,
+            title: session.messages.length ? session.title : buildTitle(userText),
+            updatedAt: new Date().toISOString(),
+            messages: [...baseMessages, { role: 'assistant', content: aiText, id: placeholderId }],
+          }
+        : session
+      )
+      persistSessions(finalSessions, activeSession.id)
     } catch (err) {
-      setMessages(prev => prev.filter(m => m.id !== aiMsgId))
+      const finalSessions = sessions.map(session => session.id === activeSession.id
+        ? { ...session, messages: baseMessages }
+        : session
+      )
+      persistSessions(finalSessions, activeSession.id)
       setError(err.message || 'Something went wrong. Please try again.')
     } finally {
       setLoading(false)
@@ -179,129 +249,168 @@ export default function Coach() {
     }
   }
 
-  const clearChat = () => {
-    setMessages([])
-    updateUser({ chatHistory: [] })
+  const handleKey = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      sendMessage()
+    }
   }
 
-  const handleKey = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
-  }
-
-  const isFirstVisit = messages.length === 0
+  const sortedSessions = [...sessions].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
 
   return (
-    <main className="pt-16 h-screen flex flex-col bg-brown-100">
+    <main className="pt-16 h-screen bg-brown-100 flex overflow-hidden">
+      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-16 left-0 z-40 w-80 bg-brown-950 text-cream border-r border-brown-800 flex flex-col transition-transform duration-300`}>
+        <div className="p-4 border-b border-brown-800">
+          <button onClick={startNewChat}
+            className="w-full bg-cream text-brown-950 hover:bg-brown-100 rounded-xl px-4 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition-colors">
+            <FiPlus /> New Chat
+          </button>
+        </div>
 
-      {/* ── Header ── */}
-      <div className="bg-brown-800 text-cream px-4 sm:px-6 py-4 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brown-600 rounded-full flex items-center justify-center text-xl">🤖</div>
-          <div>
-            <div className="font-display font-semibold text-base">FitForge AI Coach</div>
-            <div className="text-xs text-brown-300">
-              {keyNotSet ? 'API key needed' : `Powered by OpenRouter - knows your profile`}
-            </div>
+        <div className="flex-1 overflow-y-auto p-3">
+          <div className="text-xs uppercase tracking-widest text-brown-400 px-2 mb-2">Recent Chats</div>
+          <div className="space-y-1.5">
+            {sortedSessions.map(session => (
+              <button key={session.id} onClick={() => { setActiveId(session.id); setSidebarOpen(false) }}
+                className={`w-full group rounded-xl px-3 py-3 text-left transition-colors border ${
+                  session.id === activeSession?.id
+                    ? 'bg-brown-800 border-brown-700'
+                    : 'border-transparent hover:bg-brown-900'
+                }`}>
+                <div className="flex items-start gap-2">
+                  <FiMessageSquare className="mt-0.5 text-brown-400 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{session.title || 'New fitness chat'}</div>
+                    <div className="text-xs text-brown-400 mt-0.5">
+                      {session.messages?.length || 0} messages
+                    </div>
+                  </div>
+                  {sessions.length > 1 && (
+                    <span onClick={(e) => { e.stopPropagation(); deleteSession(session.id) }}
+                      className="opacity-0 group-hover:opacity-100 text-brown-500 hover:text-red-300 transition-opacity">
+                      <FiTrash2 />
+                    </span>
+                  )}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
-        {messages.length > 0 && (
-          <button onClick={clearChat} className="text-xs text-brown-400 hover:text-brown-200 transition-colors">
-            Clear chat
-          </button>
-        )}
-      </div>
 
-      {/* ── API key banner ── */}
-      {keyNotSet && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 flex-shrink-0">
-          <p className="text-xs text-amber-800 font-medium">Setup: set <code className="bg-amber-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> in your local .env and in Vercel.</p>
+        <div className="p-4 border-t border-brown-800 text-xs text-brown-400 leading-relaxed">
+          Your coach uses your goal, split, body stats, and history for more useful answers.
         </div>
+      </aside>
+
+      {sidebarOpen && (
+        <button aria-label="Close chat list" onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 top-16 z-30 bg-brown-950/40 lg:hidden" />
       )}
 
-      {/* ── Messages ── */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 space-y-4">
+      <section className="flex-1 min-w-0 flex flex-col">
+        <header className="bg-brown-900 text-cream px-4 sm:px-6 py-4 flex items-center justify-between border-b border-brown-800">
+          <div className="flex items-center gap-3 min-w-0">
+            <button onClick={() => setSidebarOpen(true)}
+              className="lg:hidden w-9 h-9 rounded-xl bg-brown-800 flex items-center justify-center">
+              <FiMenu />
+            </button>
+            <div className="w-10 h-10 rounded-xl bg-brown-700 flex items-center justify-center font-bold">AI</div>
+            <div className="min-w-0">
+              <div className="font-display font-semibold truncate">{activeSession?.title || 'FitForge AI Coach'}</div>
+              <div className="text-xs text-brown-300">
+                {keyNotSet ? 'API key needed' : 'Powered by OpenRouter - profile-aware'}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {messages.length > 0 && (
+              <button onClick={clearActiveChat}
+                className="hidden sm:flex items-center gap-1.5 text-xs text-brown-300 hover:text-cream border border-brown-700 rounded-lg px-3 py-2">
+                <FiEdit3 /> Clear
+              </button>
+            )}
+            <button onClick={startNewChat}
+              className="hidden sm:flex items-center gap-1.5 text-xs bg-brown-700 hover:bg-brown-600 rounded-lg px-3 py-2">
+              <FiPlus /> New
+            </button>
+          </div>
+        </header>
 
-        {/* Welcome / first visit */}
-        {isFirstVisit && (
-          <div className="text-center py-6">
-            <div className="text-5xl mb-3">🤖</div>
-            <h2 className="font-display text-xl font-bold text-brown-900 mb-1">
-              Hey {user?.name?.split(' ')[0] || 'there'}!
-            </h2>
-            <p className="text-sm text-brown-500 mb-6 max-w-xs mx-auto">
-              I'm your personal AI coach. I know your goal ({user?.goal || 'not set yet'}), 
-              your split, and your stats. Ask me anything.
-            </p>
+        {keyNotSet && (
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-xs text-amber-800">
+            Set <code className="bg-amber-100 px-1 rounded">VITE_OPENROUTER_API_KEY</code> in local .env and Vercel Environment Variables.
+          </div>
+        )}
 
-            {/* Suggested questions */}
-            <div className="flex flex-col gap-2 max-w-sm mx-auto">
-              <p className="text-xs text-brown-400 uppercase tracking-wider mb-1">Try asking:</p>
-              {SUGGESTED_QUESTIONS.slice(0, 4).map(q => (
-                <button key={q} onClick={() => sendMessage(q)} disabled={keyNotSet}
-                  className="text-left text-sm bg-cream border border-brown-200 rounded-xl px-4 py-2.5 text-brown-700 hover:border-brown-400 hover:bg-brown-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                  {q}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+          <div className="max-w-5xl mx-auto space-y-5">
+            {messages.length === 0 && (
+              <div className="min-h-[55vh] flex items-center justify-center">
+                <div className="max-w-2xl w-full text-center">
+                  <div className="w-16 h-16 bg-brown-900 text-cream rounded-2xl flex items-center justify-center mx-auto mb-5 font-display font-bold text-xl">AI</div>
+                  <h1 className="font-display text-3xl sm:text-4xl font-bold text-brown-950">
+                    What are we improving today, {user?.name?.split(' ')[0] || 'there'}?
+                  </h1>
+                  <p className="text-brown-500 mt-3">
+                    Ask about food, macros, training, form, recovery, or how to adjust your plan.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8">
+                    {SUGGESTED_QUESTIONS.slice(0, 4).map(question => (
+                      <button key={question} onClick={() => sendMessage(question)} disabled={keyNotSet}
+                        className="text-left bg-cream border border-brown-200 rounded-2xl px-4 py-3 text-sm text-brown-700 hover:border-brown-400 hover:bg-brown-50 transition-all disabled:opacity-40">
+                        {question}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {messages.map((message, index) => (
+              <ChatBubble key={message.id || index} message={message} />
+            ))}
+
+            {error && (
+              <div className="max-w-3xl mx-auto bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+                {error}
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+        </div>
+
+        <div className="border-t border-brown-200 bg-cream px-4 sm:px-6 py-3">
+          {messages.length > 0 && !loading && (
+            <div className="max-w-5xl mx-auto flex gap-2 overflow-x-auto pb-3">
+              {SUGGESTED_QUESTIONS.slice(2).map(question => (
+                <button key={question} onClick={() => sendMessage(question)} disabled={keyNotSet}
+                  className="flex-shrink-0 text-xs bg-white border border-brown-200 rounded-full px-3 py-1.5 text-brown-600 hover:border-brown-400 disabled:opacity-40">
+                  {question}
                 </button>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Chat messages */}
-        {messages.map((msg, i) => (
-          <ChatBubble key={msg.id || i} message={msg} />
-        ))}
-
-        {/* Error */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-4 py-3">
-            {error}
-          </div>
-        )}
-
-        {/* Scroll anchor */}
-        <div ref={bottomRef} />
-      </div>
-
-      {/* ── Suggested quick questions (after first message) ── */}
-      {messages.length > 0 && !loading && (
-        <div className="px-4 pb-2 flex gap-2 overflow-x-auto flex-shrink-0">
-          {SUGGESTED_QUESTIONS.slice(4).map(q => (
-            <button key={q} onClick={() => sendMessage(q)} disabled={keyNotSet}
-              className="flex-shrink-0 text-xs bg-cream border border-brown-200 rounded-full px-3 py-1.5 text-brown-600 hover:border-brown-400 transition-all disabled:opacity-40">
-              {q}
+          )}
+          <div className="max-w-5xl mx-auto flex gap-3 items-end">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={event => setInput(event.target.value)}
+              onKeyDown={handleKey}
+              placeholder={keyNotSet ? 'Add API key to start chatting...' : 'Ask your coach anything...'}
+              disabled={loading || keyNotSet}
+              rows={1}
+              className="flex-1 px-4 py-3 rounded-2xl border border-brown-200 bg-brown-50 text-brown-900 placeholder-brown-300 text-sm focus:outline-none focus:border-brown-400 resize-none disabled:opacity-50"
+              style={{ maxHeight: '130px', overflowY: 'auto' }}
+            />
+            <button onClick={() => sendMessage()} disabled={!input.trim() || loading || keyNotSet}
+              className="w-12 h-12 bg-brown-700 hover:bg-brown-800 disabled:opacity-40 text-cream rounded-2xl flex items-center justify-center transition-all active:scale-95">
+              {loading ? <span className="w-4 h-4 border-2 border-cream/30 border-t-cream rounded-full animate-spin" /> : <FiSend />}
             </button>
-          ))}
+          </div>
+          <p className="text-xs text-brown-300 text-center mt-1.5">Enter to send - Shift+Enter for new line</p>
         </div>
-      )}
-
-      {/* ── Input bar ── */}
-      <div className="bg-cream border-t border-brown-200 px-4 sm:px-6 py-3 flex-shrink-0">
-        <div className="flex gap-3 items-end max-w-3xl mx-auto">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKey}
-            placeholder={keyNotSet ? 'Add API key to start chatting...' : 'Ask your coach anything...'}
-            disabled={loading || keyNotSet}
-            rows={1}
-            className="flex-1 px-4 py-3 rounded-2xl border border-brown-200 bg-brown-50 text-brown-800 placeholder-brown-300 text-sm focus:outline-none focus:border-brown-400 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ maxHeight: '120px', overflowY: 'auto' }}
-          />
-          <button
-            onClick={() => sendMessage()}
-            disabled={!input.trim() || loading || keyNotSet}
-            className="w-11 h-11 bg-brown-500 hover:bg-brown-600 disabled:opacity-40 disabled:cursor-not-allowed text-cream rounded-full flex items-center justify-center text-lg transition-all active:scale-95 flex-shrink-0"
-          >
-            {loading ? (
-              <span className="w-4 h-4 border-2 border-cream/30 border-t-cream rounded-full animate-spin" />
-            ) : '↑'}
-          </button>
-        </div>
-        <p className="text-xs text-brown-300 text-center mt-1.5">
-          Press Enter to send - Shift+Enter for new line
-        </p>
-      </div>
+      </section>
     </main>
   )
 }

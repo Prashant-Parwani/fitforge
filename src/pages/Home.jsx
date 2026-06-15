@@ -186,6 +186,10 @@ function Dashboard({ user }) {
 }
 
 function GuestHome() {
+  const { user } = useAuth()
+  const primaryTo = user ? '/dashboard' : '/register'
+  const primaryLabel = user ? 'Continue Journey ->' : 'Start For Free ->'
+
   return (
     <main className="overflow-hidden">
       <section className="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden bg-brown-100">
@@ -206,7 +210,7 @@ function GuestHome() {
           </p>
 
           <div className="animate-fade-up delay-300 flex flex-wrap justify-center gap-4 mb-16">
-            <Link to="/register" className="btn-primary text-base px-8 py-3.5">Start For Free →</Link>
+            <Link to={primaryTo} className="btn-primary text-base px-8 py-3.5">{primaryLabel}</Link>
             <Link to="/machines" className="btn-outline text-base px-8 py-3.5">Explore Machines</Link>
           </div>
 
@@ -236,7 +240,7 @@ function GuestHome() {
             ))}
           </div>
           <div className="text-center">
-            <Link to="/register" className="btn-primary">Get My Personalised Plan →</Link>
+            <Link to={primaryTo} className="btn-primary">{user ? 'Open My Dashboard ->' : 'Get My Personalised Plan ->'}</Link>
           </div>
         </div>
       </section>
@@ -273,7 +277,7 @@ function GuestHome() {
           <p className="text-brown-300 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
             Ask anything - how much protein in 4 eggs, which exercises for chest day, what to eat after a workout. Your AI coach knows your profile and answers instantly.
           </p>
-          <Link to="/register" className="inline-flex items-center gap-2 bg-brown-300 text-brown-900 px-8 py-3.5 rounded-full font-medium hover:bg-brown-200 transition-colors">
+          <Link to={primaryTo} className="inline-flex items-center gap-2 bg-brown-300 text-brown-900 px-8 py-3.5 rounded-full font-medium hover:bg-brown-200 transition-colors">
             🤖 Try AI Coach Free
           </Link>
         </div>
@@ -289,6 +293,5 @@ function GuestHome() {
 }
 
 export default function Home() {
-  const { user } = useAuth()
-  return user ? <Dashboard user={user} /> : <GuestHome />
+  return <GuestHome />
 }

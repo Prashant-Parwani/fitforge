@@ -66,7 +66,7 @@ export default function Login() {
       }
 
       login(appUser)
-      navigate(appUser.onboarded ? '/' : '/onboarding')
+      navigate(appUser.onboarded ? '/dashboard' : '/onboarding')
     } catch (err) {
       setError(err.message || 'Login failed.')
     } finally {

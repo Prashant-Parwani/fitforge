@@ -160,7 +160,7 @@ export default function Onboarding() {
         ? [{ label: 'Start', value: startingWeight, date: new Date().toISOString().split('T')[0] }]
         : [],
     })
-    navigate('/')
+    navigate('/dashboard')
   }
 
   const steps = ['Profile', 'Choose Split', 'Customise Days']

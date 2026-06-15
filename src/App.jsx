@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Navbar from './components/Navbar'
 import FloatingCoach from './components/FloatingCoach'
 import Home from './pages/Home'
+import Dashboard from './pages/Dashboard'
 import Machines from './pages/Machines'
 import WorkoutPlan from './pages/WorkoutPlan'
 import WorkoutLogger from './pages/WorkoutLogger'
@@ -24,6 +25,13 @@ function OnboardingGuard({ children }) {
   return children
 }
 
+function DashboardGuard({ children }) {
+  const { user } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
+  if (!user.onboarded) return <Navigate to="/onboarding" replace />
+  return children
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -35,7 +43,8 @@ function App() {
             <Route path="/login"      element={<Login />} />
             <Route path="/register"   element={<Register />} />
             <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/"           element={<OnboardingGuard><Home /></OnboardingGuard>} />
+            <Route path="/"           element={<Home />} />
+            <Route path="/dashboard"  element={<DashboardGuard><Dashboard /></DashboardGuard>} />
             <Route path="/machines"   element={<OnboardingGuard><Machines /></OnboardingGuard>} />
             <Route path="/workout"    element={<OnboardingGuard><WorkoutPlan /></OnboardingGuard>} />
             <Route path="/log"        element={<OnboardingGuard><WorkoutLogger /></OnboardingGuard>} />
