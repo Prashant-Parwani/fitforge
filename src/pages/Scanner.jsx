@@ -149,7 +149,7 @@ Use accurate per-100g nutrition. Chicken breast is about 165 kcal and 31g protei
               </label>
             </div>
 
-            {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">{error}</div>}
+            {error && <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl px-4 py-3">{error}</div>}
 
             {preview && (
               <button onClick={analyseImage} disabled={loading}
@@ -187,7 +187,7 @@ Use accurate per-100g nutrition. Chicken breast is about 165 kcal and 31g protei
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { label: 'Calories', value: Math.round((p.calories || 0) * scale), unit: 'kcal', bg: 'bg-orange-50', txt: 'text-orange-600', border: 'border-orange-100' },
-                { label: 'Protein', value: Math.round((p.protein || 0) * scale) + 'g', unit: 'grams', bg: 'bg-red-50', txt: 'text-red-600', border: 'border-red-100' },
+                { label: 'Protein', value: Math.round((p.protein || 0) * scale) + 'g', unit: 'grams', bg: 'bg-rose-50', txt: 'text-rose-600', border: 'border-rose-100' },
                 { label: 'Carbs', value: Math.round((p.carbs || 0) * scale) + 'g', unit: 'grams', bg: 'bg-yellow-50', txt: 'text-yellow-600', border: 'border-yellow-100' },
                 { label: 'Fat', value: Math.round((p.fat || 0) * scale) + 'g', unit: 'grams', bg: 'bg-blue-50', txt: 'text-blue-600', border: 'border-blue-100' },
               ].map(m => (

@@ -35,7 +35,7 @@ function FoodCard({ food, onAdd }) {
       <div className="grid grid-cols-4 gap-1 mb-3">
         {[
           { label: 'Cal',     value: Math.round(food.calories * scale),        color: 'text-orange-600' },
-          { label: 'Protein', value: Math.round(food.protein  * scale) + 'g',  color: 'text-red-600' },
+          { label: 'Protein', value: Math.round(food.protein  * scale) + 'g',  color: 'text-rose-600' },
           { label: 'Carbs',   value: Math.round(food.carbs    * scale) + 'g',  color: 'text-yellow-600' },
           { label: 'Fat',     value: Math.round(food.fat      * scale) + 'g',  color: 'text-blue-600' },
         ].map(m => (
@@ -69,7 +69,7 @@ function DietPlanView({ goal }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: 'Daily Calories', value: plan.calories, unit: 'kcal', bg: 'bg-orange-50', txt: 'text-orange-600' },
-          { label: 'Protein',        value: plan.protein,  unit: 'g',    bg: 'bg-red-50',    txt: 'text-red-600' },
+          { label: 'Protein',        value: plan.protein,  unit: 'g',    bg: 'bg-rose-50',    txt: 'text-rose-600' },
           { label: 'Carbs',          value: plan.carbs,    unit: 'g',    bg: 'bg-yellow-50', txt: 'text-yellow-600' },
           { label: 'Fat',            value: plan.fat,      unit: 'g',    bg: 'bg-blue-50',   txt: 'text-blue-600' },
         ].map(m => (
@@ -90,7 +90,7 @@ function DietPlanView({ goal }) {
               </div>
               <div className="flex gap-2 text-xs">
                 <span className="text-orange-600 font-medium">{meal.macros.cal} cal</span>
-                <span className="text-red-500">{meal.macros.p}g P</span>
+                <span className="text-rose-600">{meal.macros.p}g P</span>
                 <span className="text-yellow-600">{meal.macros.c}g C</span>
                 <span className="text-blue-500">{meal.macros.f}g F</span>
               </div>
@@ -344,7 +344,7 @@ IMPORTANT:
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <MacroBar label="Protein" current={totals.protein} target={currentPlan.protein} color="bg-red-400" />
+                  <MacroBar label="Protein" current={totals.protein} target={currentPlan.protein} color="bg-rose-400" />
                   <MacroBar label="Carbs"   current={totals.carbs}   target={currentPlan.carbs}   color="bg-yellow-400" />
                   <MacroBar label="Fat"     current={totals.fat}     target={currentPlan.fat}     color="bg-blue-400" />
                 </div>
@@ -389,11 +389,11 @@ IMPORTANT:
                           </div>
                           <div className="flex gap-3 text-xs text-right">
                             <span className="text-orange-600 font-bold">{item.calories}</span>
-                            <span className="text-red-500">{item.protein}g P</span>
+                            <span className="text-rose-600">{item.protein}g P</span>
                             <span className="text-yellow-600">{item.carbs}g C</span>
                             <span className="text-blue-500">{item.fat}g F</span>
                           </div>
-                          <button onClick={() => removeFromLog(item.id)} className="text-brown-300 hover:text-red-400 transition-colors ml-1 text-sm">✕</button>
+                          <button onClick={() => removeFromLog(item.id)} className="text-brown-300 hover:text-rose-400 transition-colors ml-1 text-sm">✕</button>
                         </div>
                       ))}
                     </div>
@@ -401,7 +401,7 @@ IMPORTANT:
                       <div className="flex-1 font-semibold text-sm text-brown-800">Total</div>
                       <div className="flex gap-3 text-xs font-bold">
                         <span className="text-orange-600">{totals.calories} kcal</span>
-                        <span className="text-red-500">{totals.protein}g P</span>
+                        <span className="text-rose-600">{totals.protein}g P</span>
                         <span className="text-yellow-600">{totals.carbs}g C</span>
                         <span className="text-blue-500">{totals.fat}g F</span>
                       </div>
@@ -417,7 +417,7 @@ IMPORTANT:
           {foodLog.length >= 2 && (
             <div className="mt-5">
               {insightError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-4 py-3 mb-3">{insightError}</div>
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl px-4 py-3 mb-3">{insightError}</div>
               )}
               {!insight ? (
                 <button onClick={analyseMyDay} disabled={insightLoading}
@@ -432,7 +432,7 @@ IMPORTANT:
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-display text-lg font-semibold">Today's Analysis</h3>
                     <div className="flex items-center gap-2">
-                      <div className={`text-2xl font-display font-bold ${insight.score >= 7 ? 'text-green-400' : insight.score >= 4 ? 'text-amber-400' : 'text-red-400'}`}>
+                      <div className={`text-2xl font-display font-bold ${insight.score >= 7 ? 'text-green-400' : insight.score >= 4 ? 'text-amber-400' : 'text-rose-400'}`}>
                         {insight.score}/10
                       </div>
                       <button onClick={() => setInsight(null)} className="text-brown-400 hover:text-brown-200 text-xs">↺ Re-analyse</button>
@@ -445,7 +445,7 @@ IMPORTANT:
                       <p className="text-sm text-brown-100">{insight.protein_message}</p>
                     </div>
                     {insight.warning && (
-                      <div className="bg-red-900/40 rounded-xl p-3">
+                      <div className="bg-rose-900/40 rounded-xl p-3">
                         <div className="text-xs font-semibold uppercase tracking-wider text-brown-300 mb-0.5">⚠️ Watch Out</div>
                         <p className="text-sm text-brown-100">{insight.warning}</p>
                       </div>
@@ -570,7 +570,7 @@ IMPORTANT:
 
             {/* Error */}
             {aiError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4 leading-relaxed">
+              <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl px-4 py-3 mb-4 leading-relaxed">
                 {aiError}
               </div>
             )}

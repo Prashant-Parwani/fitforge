@@ -114,7 +114,7 @@ export default function ProfileDrawer({ open, onClose }) {
     ? (parseFloat(form.weight) / Math.pow(parseFloat(form.height) / 100, 2)).toFixed(1)
     : null
   const bmiLabel = !bmi ? '' : bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Healthy' : bmi < 30 ? 'Overweight' : 'Obese'
-  const bmiColor = !bmi ? '' : bmi < 18.5 ? 'text-blue-600' : bmi < 25 ? 'text-green-600' : bmi < 30 ? 'text-yellow-600' : 'text-red-600'
+  const bmiColor = !bmi ? '' : bmi < 18.5 ? 'text-blue-600' : bmi < 25 ? 'text-green-600' : bmi < 30 ? 'text-yellow-600' : 'text-rose-600'
 
   const weightDiff = form.weight && form.targetWeight
     ? (parseFloat(form.targetWeight) - parseFloat(form.weight)).toFixed(1)
@@ -343,10 +343,10 @@ export default function ProfileDrawer({ open, onClose }) {
           {/* ── WORKOUT ── */}
           {section === 'workout' && (
             <>
-              <p className="text-sm text-brown-600 font-body">
+                <p className="text-sm text-brown-600 font-body">
                 Your current split: <strong className="text-brown-800">{
                   user.customSplit
-                    ? user.customSplit.map(d => d.focus.split(' ')[0]).slice(0,3).join(', ') + '...'
+                    ? user.customSplit.map(d => d.focus).slice(0,3).join(', ') + '...'
                     : 'Default'
                 }</strong>
               </p>
@@ -358,7 +358,7 @@ export default function ProfileDrawer({ open, onClose }) {
                     <div key={i} className={`${d.color || 'bg-brown-400'} rounded-lg p-1.5 text-center text-cream`}>
                       <div className="text-xs font-bold">{d.short}</div>
                       <div className="leading-tight mt-0.5 text-cream/80" style={{ fontSize: '9px' }}>
-                        {(d.focus || '').split(' ')[0]}
+                        {d.focus}
                       </div>
                     </div>
                   ))}
@@ -417,23 +417,23 @@ export default function ProfileDrawer({ open, onClose }) {
               </div>
 
               {/* Danger zone */}
-              <div className="bg-red-50 rounded-2xl p-4 border border-red-100 space-y-3">
-                <p className="text-xs font-semibold text-red-600 uppercase tracking-wider">Danger Zone</p>
+              <div className="bg-rose-50 rounded-2xl p-4 border border-rose-100 space-y-3">
+                <p className="text-xs font-semibold text-rose-600 uppercase tracking-wider">Danger Zone</p>
 
                 <div>
-                  <p className="text-sm font-medium text-red-700 mb-1">Reset all progress logs</p>
-                  <p className="text-xs text-red-500 mb-2">Clears all workout and weight history. Your profile stays.</p>
+                  <p className="text-sm font-medium text-rose-700 mb-1">Reset all progress logs</p>
+                  <p className="text-xs text-rose-600 mb-2">Clears all workout and weight history. Your profile stays.</p>
                   <button onClick={resetProgress}
-                    className="w-full py-2 px-4 rounded-xl border border-red-300 text-red-600 text-sm font-medium hover:bg-red-100 transition-colors">
+                    className="w-full py-2 px-4 rounded-xl border border-rose-300 text-rose-600 text-sm font-medium hover:bg-rose-100 transition-colors">
                     Reset Progress Data
                   </button>
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-red-700 mb-1">Redo onboarding</p>
-                  <p className="text-xs text-red-500 mb-2">Start the setup flow again to pick a new split or correct all your details.</p>
+                  <p className="text-sm font-medium text-rose-700 mb-1">Redo onboarding</p>
+                  <p className="text-xs text-rose-600 mb-2">Start the setup flow again to pick a new split or correct all your details.</p>
                   <button onClick={goToOnboarding}
-                    className="w-full py-2 px-4 rounded-xl border border-red-300 text-red-600 text-sm font-medium hover:bg-red-100 transition-colors">
+                    className="w-full py-2 px-4 rounded-xl border border-rose-300 text-rose-600 text-sm font-medium hover:bg-rose-100 transition-colors">
                     Redo Full Setup
                   </button>
                 </div>

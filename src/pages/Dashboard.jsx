@@ -5,20 +5,23 @@ import { FiActivity, FiArrowRight, FiBarChart2, FiCamera, FiClock, FiCpu, FiPlay
 const focusColor = (focus) => {
   if (!focus) return 'from-brown-500 to-brown-700'
   if (focus === 'Rest') return 'from-amber-500 to-orange-500'
-  if (focus.includes('Chest')) return 'from-red-500 to-rose-600'
+  if (focus.includes('Chest')) return 'from-rose-400 to-rose-600'
   if (focus.includes('Back')) return 'from-blue-600 to-indigo-700'
   if (focus.includes('Leg') || focus.includes('Glutes') || focus.includes('Hamstrings')) return 'from-green-600 to-emerald-700'
   if (focus.includes('Shoulder') || focus.includes('Trap')) return 'from-purple-600 to-violet-700'
-  if (focus.includes('Arm') || focus.includes('Bicep') || focus.includes('Tricep')) return 'from-orange-500 to-red-500'
+  if (focus.includes('Arm') || focus.includes('Bicep') || focus.includes('Tricep')) return 'from-orange-500 to-rose-500'
   if (focus.includes('Cardio') || focus.includes('Mobility')) return 'from-teal-500 to-cyan-600'
   if (focus.includes('Core')) return 'from-yellow-500 to-amber-600'
   return 'from-brown-500 to-brown-700'
 }
 
-const tileColor = (focus) => {
-  if (!focus) return 'bg-brown-500'
+// Use a minimal neutral tile look and render a small accent dot for focus
+const tileColor = () => 'bg-cream text-brown-900 border border-brown-200'
+
+const accentColor = (focus) => {
+  if (!focus) return 'bg-brown-400'
   if (focus === 'Rest') return 'bg-amber-500'
-  if (focus.includes('Chest')) return 'bg-red-500'
+  if (focus.includes('Chest')) return 'bg-rose-500'
   if (focus.includes('Back')) return 'bg-blue-600'
   if (focus.includes('Leg') || focus.includes('Glutes') || focus.includes('Hamstrings')) return 'bg-green-600'
   if (focus.includes('Shoulder') || focus.includes('Trap')) return 'bg-purple-600'
@@ -111,7 +114,7 @@ export default function Dashboard() {
               <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-white/70 mb-2">Today - {todayPlan?.day || 'Plan'}</p>
-                  <h2 className="font-display text-4xl sm:text-5xl font-bold">{todayPlan?.focus || 'Rest Day'}</h2>
+                  <h2 className="font-display text-3xl sm:text-4xl font-bold">{todayPlan?.focus || 'Rest Day'}</h2>
                   <p className="text-white/75 mt-2 max-w-xl">
                     {doneToday
                       ? 'Workout already logged. Nice work.'
@@ -171,9 +174,12 @@ export default function Dashboard() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                   {user.customSplit.map((day, index) => (
                     <button key={day.day}
-                      className={`${tileColor(day.focus)} ${index === todayIdx ? 'ring-2 ring-brown-900 ring-offset-2 ring-offset-cream' : ''} rounded-xl p-3 text-left text-cream min-h-[84px]`}>
-                      <div className="text-xs font-bold opacity-80">{day.short || day.day?.slice(0, 3)}</div>
-                      <div className="font-semibold text-sm mt-3 leading-tight">{day.focus}</div>
+                      className={`${tileColor()} ${index === todayIdx ? 'ring-2 ring-brown-900 ring-offset-2 ring-offset-cream' : ''} rounded-xl p-3 text-left min-h-[84px]`}> 
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-bold text-brown-800 opacity-90">{day.short || day.day?.slice(0, 3)}</div>
+                        <div className={`w-3 h-3 rounded-full ${accentColor(day.focus)} shrink-0`} />
+                      </div>
+                      <div className="font-semibold text-sm mt-3 leading-tight text-brown-900">{day.focus}</div>
                     </button>
                   ))}
                 </div>
@@ -182,17 +188,17 @@ export default function Dashboard() {
           </div>
 
           <aside className="space-y-6">
-            <Link to="/coach" className="block rounded-2xl overflow-hidden bg-brown-950 text-cream shadow-xl hover:-translate-y-0.5 transition-all">
+            <Link to="/coach" className="block rounded-2xl overflow-hidden bg-cream text-brown-900 border border-brown-200 shadow-sm hover:shadow-md transition-all">
               <div className="p-6">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-200 flex items-center justify-center mb-5">
+                <div className="w-12 h-12 rounded-2xl bg-brown-50 text-brown-700 flex items-center justify-center mb-5">
                   <FiCpu className="text-2xl" />
                 </div>
-                <p className="text-xs uppercase tracking-widest text-brown-300 mb-2">FitForge AI</p>
-                <h3 className="font-display text-3xl font-bold">Ask your AI Coach</h3>
-                <p className="text-brown-300 text-sm mt-3 leading-relaxed">
+                <p className="text-xs uppercase tracking-widest text-brown-500 mb-2">FitForge AI</p>
+                <h3 className="font-display text-2xl font-bold text-brown-900">Ask your AI Coach</h3>
+                <p className="text-brown-600 text-sm mt-3 leading-relaxed">
                   Get profile-aware answers about meals, macros, workout form, recovery, and supplements.
                 </p>
-                <div className="mt-6 inline-flex items-center gap-2 text-sm text-brown-200">
+                <div className="mt-6 inline-flex items-center gap-2 text-sm text-brown-700">
                   Open coach <FiArrowRight />
                 </div>
               </div>

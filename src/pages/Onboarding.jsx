@@ -14,10 +14,10 @@ const WORKOUT_PATTERNS = [
     name: 'Push / Pull / Legs',
     desc: 'Classic 6-day split. Best for intermediate lifters.',
     days: [
-      { day:'Monday',    short:'Mon', focus:'Chest + Triceps',   color:'bg-red-500' },
+      { day:'Monday',    short:'Mon', focus:'Chest + Triceps',   color:'bg-rose-500' },
       { day:'Tuesday',   short:'Tue', focus:'Back + Biceps',     color:'bg-blue-600' },
       { day:'Wednesday', short:'Wed', focus:'Legs',              color:'bg-green-600' },
-      { day:'Thursday',  short:'Thu', focus:'Chest + Shoulders', color:'bg-red-500' },
+      { day:'Thursday',  short:'Thu', focus:'Chest + Shoulders', color:'bg-rose-500' },
       { day:'Friday',    short:'Fri', focus:'Back + Biceps',     color:'bg-blue-600' },
       { day:'Saturday',  short:'Sat', focus:'Legs + Cardio',     color:'bg-teal-500' },
       { day:'Sunday',    short:'Sun', focus:'Rest',              color:'bg-brown-300' },
@@ -28,7 +28,7 @@ const WORKOUT_PATTERNS = [
     name: 'Classic Bro Split',
     desc: '5-day split. One muscle per day. Best for beginners.',
     days: [
-      { day:'Monday',    short:'Mon', focus:'Chest',             color:'bg-red-500' },
+      { day:'Monday',    short:'Mon', focus:'Chest',             color:'bg-rose-500' },
       { day:'Tuesday',   short:'Tue', focus:'Back',              color:'bg-blue-600' },
       { day:'Wednesday', short:'Wed', focus:'Legs',              color:'bg-green-600' },
       { day:'Thursday',  short:'Thu', focus:'Shoulders + Traps', color:'bg-purple-600' },
@@ -56,10 +56,10 @@ const WORKOUT_PATTERNS = [
     name: 'Chest+Tri / Back+Bi',
     desc: 'Most popular split. Synergistic muscle pairing.',
     days: [
-      { day:'Monday',    short:'Mon', focus:'Chest + Triceps',   color:'bg-red-500' },
+      { day:'Monday',    short:'Mon', focus:'Chest + Triceps',   color:'bg-rose-500' },
       { day:'Tuesday',   short:'Tue', focus:'Back + Biceps',     color:'bg-blue-600' },
       { day:'Wednesday', short:'Wed', focus:'Legs',              color:'bg-green-600' },
-      { day:'Thursday',  short:'Thu', focus:'Chest + Triceps',   color:'bg-red-500' },
+      { day:'Thursday',  short:'Thu', focus:'Chest + Triceps',   color:'bg-rose-500' },
       { day:'Friday',    short:'Fri', focus:'Back + Biceps',     color:'bg-blue-600' },
       { day:'Saturday',  short:'Sat', focus:'Shoulders + Core',  color:'bg-purple-600' },
       { day:'Sunday',    short:'Sun', focus:'Rest',              color:'bg-brown-300' },
@@ -92,7 +92,7 @@ const CUSTOM_FOCUS = [
 
 const focusColor = (focus) => {
   if (!focus) return 'bg-brown-400'
-  if (focus.includes('Chest'))    return 'bg-red-500'
+  if (focus.includes('Chest'))    return 'bg-rose-500'
   if (focus.includes('Back'))     return 'bg-blue-600'
   if (focus.includes('Leg'))      return 'bg-green-600'
   if (focus.includes('Shoulder')) return 'bg-purple-600'
@@ -317,7 +317,7 @@ export default function Onboarding() {
                     {pattern.days.map(d => (
                       <div key={d.day} className={`${d.color} rounded-lg p-1.5 text-center text-cream`}>
                         <div className="text-xs font-bold">{d.short}</div>
-                        <div className="text-xs opacity-80 leading-tight mt-0.5 truncate">{d.focus.split(' ')[0]}</div>
+                        <div className="text-xs opacity-80 leading-tight mt-0.5 truncate">{d.focus}</div>
                       </div>
                     ))}
                   </div>
@@ -357,7 +357,7 @@ export default function Onboarding() {
                     } ${d.color || focusColor(d.focus)}`}>
                     <div className="text-xs font-bold">{d.short}</div>
                     <div className="text-xs opacity-80 mt-0.5 leading-tight" style={{fontSize:'9px'}}>
-                      {d.focus.split(' ')[0]}
+                      {d.focus}
                     </div>
                   </button>
                 ))}

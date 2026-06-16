@@ -194,19 +194,19 @@ export default function Calculator() {
               <h2 className="font-display text-lg font-semibold text-brown-900 mb-1">Daily Macro Targets</h2>
               <p className="text-xs text-brown-400 mb-4">Based on your maintenance calories. Protein = 2.2g/kg bodyweight.</p>
               <div className="grid grid-cols-3 gap-3 mb-4">
-                <MacroCard label="Protein" grams={macros.protein} pct={pctP} color="text-red-600"    desc="Muscle building & repair" />
+                <MacroCard label="Protein" grams={macros.protein} pct={pctP} color="text-rose-600"    desc="Muscle building & repair" />
                 <MacroCard label="Carbs"   grams={macros.carbs}   pct={pctC} color="text-yellow-600" desc="Energy & performance" />
                 <MacroCard label="Fat"     grams={macros.fat}     pct={pctF} color="text-blue-600"   desc="Hormones & joints" />
               </div>
 
               {/* Visual bar */}
               <div className="flex rounded-full overflow-hidden h-4 mb-2">
-                <div className="bg-red-400"    style={{ width: `${pctP}%` }} />
+                <div className="bg-rose-400"    style={{ width: `${pctP}%` }} />
                 <div className="bg-yellow-400" style={{ width: `${pctC}%` }} />
                 <div className="bg-blue-400"   style={{ width: `${pctF}%` }} />
               </div>
               <div className="flex justify-between text-xs text-brown-400">
-                <span className="text-red-500">Protein {pctP}%</span>
+                <span className="text-rose-600">Protein {pctP}%</span>
                 <span className="text-yellow-600">Carbs {pctC}%</span>
                 <span className="text-blue-500">Fat {pctF}%</span>
               </div>
@@ -228,7 +228,7 @@ export default function Calculator() {
             <div className="bg-brown-800 rounded-2xl p-5 text-cream">
               <h3 className="font-display text-base font-semibold mb-3">How to use these numbers</h3>
               <div className="space-y-2.5 text-sm text-brown-300 font-body">
-                <div className="flex gap-2"><span className="text-red-400 flex-shrink-0">🔥</span><span><strong className="text-cream">Cutting ({cutting} kcal):</strong> Eat this to lose ~0.5kg/week. Keep protein high to preserve muscle.</span></div>
+                <div className="flex gap-2"><span className="text-rose-400 flex-shrink-0">🔥</span><span><strong className="text-cream">Cutting ({cutting} kcal):</strong> Eat this to lose ~0.5kg/week. Keep protein high to preserve muscle.</span></div>
                 <div className="flex gap-2"><span className="text-amber-400 flex-shrink-0">⚖️</span><span><strong className="text-cream">Maintenance ({maintenance} kcal):</strong> Stay the same weight while building fitness.</span></div>
                 <div className="flex gap-2"><span className="text-green-400 flex-shrink-0">📈</span><span><strong className="text-cream">Bulking ({bulking} kcal):</strong> Gain ~0.3kg/week, mostly muscle if training hard.</span></div>
                 <div className="flex gap-2"><span className="text-blue-400 flex-shrink-0">💡</span><span>These are estimates — adjust by ±100 kcal every 2 weeks based on actual weight change.</span></div>

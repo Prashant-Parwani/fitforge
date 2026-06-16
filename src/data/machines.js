@@ -2,7 +2,7 @@
 // 50+ machines across all muscle groups
 
 export const machineCategories = [
-  { id: 'chest',     label: 'Chest',     emoji: '💪', color: 'bg-red-100 text-red-700 border-red-200' },
+  { id: 'chest',     label: 'Chest',     emoji: '💪', color: 'bg-rose-100 text-rose-700 border-rose-200' },
   { id: 'back',      label: 'Back',      emoji: '🔙', color: 'bg-blue-100 text-blue-700 border-blue-200' },
   { id: 'legs',      label: 'Legs',      emoji: '🦵', color: 'bg-green-100 text-green-700 border-green-200' },
   { id: 'shoulders', label: 'Shoulders', emoji: '🙆', color: 'bg-purple-100 text-purple-700 border-purple-200' },

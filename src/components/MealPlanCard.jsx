@@ -40,7 +40,7 @@ export default function MealPlanCard({ day, meals, isToday }) {
                   {meal.macros && (
                     <div className="flex gap-2 mt-1">
                       {meal.macros.calories && <span className="text-xs text-orange-600">{meal.macros.calories} cal</span>}
-                      {meal.macros.protein  && <span className="text-xs text-red-500">{meal.macros.protein}g P</span>}
+                      {meal.macros.protein  && <span className="text-xs text-rose-600">{meal.macros.protein}g P</span>}
                       {meal.macros.carbs    && <span className="text-xs text-yellow-600">{meal.macros.carbs}g C</span>}
                       {meal.macros.fat      && <span className="text-xs text-blue-500">{meal.macros.fat}g F</span>}
                     </div>

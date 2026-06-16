@@ -202,7 +202,7 @@ Tracked with FitForge`
           AI analyses your last 7 days and gives you a personalised score and feedback.
         </p>
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-4 py-3 mb-3">{error}</div>
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl px-4 py-3 mb-3">{error}</div>
         )}
         <button onClick={generateReport} disabled={loading || keyNotSet}
           className="btn-primary w-full py-3 flex items-center justify-center gap-3 disabled:opacity-50">

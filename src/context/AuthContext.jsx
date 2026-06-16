@@ -49,7 +49,42 @@ export function AuthProvider({ children }) {
 
     const loadUser = async () => {
       const saved = localStorage.getItem('fitforge_user')
-      if (saved && mounted) setUser(JSON.parse(saved))
+      if (saved && mounted) {
+        try {
+          const parsed = JSON.parse(saved)
+          // Migration: fix older saved splits that were truncated to single words
+          const MIGRATE_MAP = {
+            'Chest': 'Chest + Triceps',
+            'Back': 'Back + Biceps',
+            'Cardio': 'Cardio + Core',
+            'Shoulders': 'Shoulders + Traps'
+          }
+
+          let migrated = false
+          if (parsed?.customSplit?.length) {
+            const newSplit = parsed.customSplit.map(d => {
+              const cur = d?.focus
+              if (cur && MIGRATE_MAP[cur]) {
+                migrated = true
+                return { ...d, focus: MIGRATE_MAP[cur] }
+              }
+              return d
+            })
+            if (migrated) {
+              parsed.customSplit = newSplit
+              // persist the migration immediately
+              localStorage.setItem('fitforge_user', JSON.stringify(parsed))
+              if (isSupabaseConfigured) await persistUser(parsed)
+            }
+          }
+
+          setUser(parsed)
+        } catch (e) {
+          // ignore parse errors and fall back to null
+          console.warn('Failed to parse saved fitforge_user', e)
+          setUser(null)
+        }
+      }
 
       if (isSupabaseConfigured) {
         const { data } = await supabase.auth.getUser()

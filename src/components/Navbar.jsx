@@ -35,7 +35,7 @@ export default function Navbar() {
 
   const handleLogout = () => { logout(); navigate('/') }
   const visibleLinks = user
-    ? [{ to: '/dashboard', label: 'Dashboard', emoji: 'FF' }, ...navLinks]
+    ? [{ to: '/dashboard', label: 'Dashboard', emoji: '' }, ...navLinks]
     : navLinks
 
   return (
@@ -43,23 +43,27 @@ export default function Navbar() {
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled ? 'bg-cream/95 backdrop-blur-md shadow-sm border-b border-brown-200' : 'bg-transparent'
       }`}>
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+        <nav className="w-full px-6 flex items-center h-16">
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group flex-shrink-0">
-            <div className="w-8 h-8 bg-brown-500 rounded-lg flex items-center justify-center text-cream font-display font-bold text-sm group-hover:bg-brown-600 transition-colors">FF</div>
-            <span className="font-display font-semibold text-brown-800 text-lg hidden sm:block">FitForge</span>
-          </Link>
+          {/* Left - Logo */}
+          <div className="flex items-center flex-shrink-0">
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 bg-brown-500 rounded-lg flex items-center justify-center text-cream font-display font-bold text-sm group-hover:bg-brown-600 transition-colors">FF</div>
+              <span className="font-display font-semibold text-brown-800 text-lg hidden sm:block">FitForge</span>
+            </Link>
+          </div>
 
-          {/* Desktop nav */}
-          <ul className="hidden md:flex items-center gap-1">
+          {/* Center - Desktop nav (evenly spaced) */}
+          <div className="flex-1 flex justify-center">
+            <ul className="hidden md:flex items-center gap-6">
             {visibleLinks.map(link => (
               <li key={link.to}>
                 <Link to={link.to}
                   className={`px-3 py-2 rounded-lg text-sm font-body font-medium transition-all duration-200 flex items-center gap-1.5 ${
                     location.pathname === link.to ? 'bg-brown-500 text-cream' : 'text-brown-700 hover:bg-brown-200 hover:text-brown-800'
                   }`}>
-                  <span className="text-base">{link.emoji}</span>{link.label}
+                  <span className="text-base">{link.emoji}</span>
+                  <span className="hidden lg:inline">{link.label}</span>
                 </Link>
               </li>
             ))}
@@ -74,7 +78,8 @@ export default function Navbar() {
                 </Link>
               </li>
             )}
-          </ul>
+            </ul>
+          </div>
 
           {/* Right side */}
           <div className="hidden md:flex items-center gap-2">

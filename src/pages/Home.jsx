@@ -12,7 +12,7 @@ const features = [
 ]
 
 const weekPlan = [
-  { day: 'Mon', focus: 'Chest', color: 'bg-red-500' },
+  { day: 'Mon', focus: 'Chest', color: 'bg-rose-500' },
   { day: 'Tue', focus: 'Back', color: 'bg-blue-600' },
   { day: 'Wed', focus: 'Legs', color: 'bg-green-600' },
   { day: 'Thu', focus: 'Shoulders', color: 'bg-purple-600' },
@@ -69,7 +69,7 @@ function Dashboard({ user }) {
 
   const focusColor = (focus) => {
     if (!focus) return 'bg-brown-400'
-    if (focus.includes('Chest')) return 'bg-red-500'
+    if (focus.includes('Chest')) return 'bg-rose-500'
     if (focus.includes('Back')) return 'bg-blue-600'
     if (focus.includes('Leg')) return 'bg-green-600'
     if (focus.includes('Shoulder')) return 'bg-purple-600'
@@ -144,7 +144,7 @@ function Dashboard({ user }) {
               {user.customSplit.map((day, i) => (
                 <div key={day.day} className={`rounded-xl p-1.5 text-center text-cream ${focusColor(day.focus)} ${i === todayIdx ? 'ring-2 ring-brown-800' : 'opacity-80'}`}>
                   <div className="text-xs font-bold">{day.short || day.day?.slice(0, 3)}</div>
-                  <div className="text-xs opacity-80 leading-tight mt-0.5" style={{ fontSize: '9px' }}>{(day.focus || '').split(' ')[0]}</div>
+                  <div className="text-xs opacity-80 leading-tight mt-0.5" style={{ fontSize: '9px' }}>{day.focus}</div>
                 </div>
               ))}
             </div>
@@ -232,12 +232,15 @@ function GuestHome() {
             <h2 className="font-display text-4xl font-bold text-brown-900 mt-2">Your 7-Day Plan</h2>
           </div>
           <div className="grid grid-cols-7 gap-2 sm:gap-3 mb-8">
-            {weekPlan.map(day => (
-              <div key={day.day} className={`${day.color} rounded-xl p-3 sm:p-4 text-center text-cream`}>
-                <div className="font-body font-semibold text-xs sm:text-sm">{day.day}</div>
-                <div className="font-body text-xs opacity-80 mt-0.5 hidden sm:block">{day.focus}</div>
-              </div>
-            ))}
+              {weekPlan.map(day => (
+                <div key={day.day} className={`rounded-xl p-3 sm:p-4 text-center bg-cream border border-brown-200 text-brown-800`}> 
+                  <div className="flex items-center justify-center gap-2">
+                    <div className={`w-2.5 h-2.5 rounded-full ${day.color.replace('bg-','bg-')}`} />
+                    <div className="font-body font-semibold text-xs sm:text-sm">{day.day}</div>
+                  </div>
+                  <div className="font-body text-xs opacity-80 mt-0.5 hidden sm:block">{day.focus}</div>
+                </div>
+              ))}
           </div>
           <div className="text-center">
             <Link to={primaryTo} className="btn-primary">{user ? 'Open My Dashboard ->' : 'Get My Personalised Plan ->'}</Link>

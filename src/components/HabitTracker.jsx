@@ -39,7 +39,7 @@ export default function HabitTracker() {
       current:  workoutsThisWeek,
       target:   5,
       unit:     'sessions',
-      color:    'bg-red-400',
+      color:    'bg-rose-400',
       emoji:    '💪',
       to:       '/log',
       cta:      'Log workout',

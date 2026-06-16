@@ -109,7 +109,7 @@ export default function MeasurementTracker() {
                   </div>
                   {change !== null && (
                     <div className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                      isGood ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
+                      isGood ? 'bg-green-50 text-green-700' : 'bg-rose-50 text-rose-600'
                     }`}>
                       {parseFloat(change) > 0 ? '+' : ''}{change} cm
                     </div>

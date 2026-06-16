@@ -60,7 +60,7 @@ const FALLBACK = 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w
 const difficultyColor = {
   Beginner:     'bg-green-100 text-green-700',
   Intermediate: 'bg-yellow-100 text-yellow-700',
-  Advanced:     'bg-red-100 text-red-700',
+  Advanced:     'bg-rose-100 text-rose-700',
 }
 const typeColor = {
   'Machine':          'bg-blue-100 text-blue-700',

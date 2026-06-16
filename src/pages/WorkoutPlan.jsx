@@ -15,7 +15,7 @@ const FOCUS_OPTIONS = [
 const focusColor = (focus) => {
   if (!focus) return 'bg-brown-400'
   if (focus === 'Rest') return 'bg-brown-300'
-  if (focus.includes('Chest')) return 'bg-red-500'
+  if (focus.includes('Chest')) return 'bg-rose-500'
   if (focus.includes('Back')) return 'bg-blue-600'
   if (focus.includes('Leg') || focus.includes('Glutes') || focus.includes('Hamstrings')) return 'bg-green-600'
   if (focus.includes('Shoulder') || focus.includes('Trap')) return 'bg-purple-600'
@@ -109,7 +109,7 @@ export default function WorkoutPlan() {
               <button key={d.day} onClick={() => { setActiveDay(i); setEditingDay(null) }}
                 className={`flex flex-col items-center px-4 py-2 rounded-xl transition-all ${activeDay === i ? `${focusColor(d.focus)} text-cream` : 'hover:bg-brown-100 text-brown-600'}`}>
                 <span className="text-xs font-bold">{d.short}</span>
-                <span className="text-xs opacity-80">{(d.focus||'').split(' ')[0]}</span>
+                <span className="text-xs opacity-80">{d.focus}</span>
               </button>
             ))}
           </div>
@@ -127,7 +127,7 @@ export default function WorkoutPlan() {
                 <button key={d.day} onClick={() => setEditingDay(editingDay === i ? null : i)}
                   className={`rounded-xl p-2 text-center text-cream transition-all border-2 ${editingDay === i ? 'border-amber-400 scale-105' : 'border-transparent'} ${focusColor(d.focus)}`}>
                   <div className="text-xs font-bold">{d.short}</div>
-                  <div className="text-xs opacity-80 truncate">{(d.focus||'').split(' ')[0]}</div>
+                  <div className="text-xs opacity-80 truncate">{d.focus}</div>
                 </button>
               ))}
             </div>
@@ -232,7 +232,7 @@ export default function WorkoutPlan() {
               <button key={d.day} onClick={() => setActiveDay(i)}
                 className={`rounded-xl p-2 text-center transition-all ${i === activeDay ? 'ring-2 ring-brown-200' : 'opacity-70 hover:opacity-100'} ${focusColor(d.focus)}`}>
                 <div className="text-xs font-bold">{d.short}</div>
-                <div className="text-xs opacity-80 truncate">{(d.focus||'').split(' ')[0]}</div>
+                <div className="text-xs opacity-80 truncate">{d.focus}</div>
               </button>
             ))}
           </div>

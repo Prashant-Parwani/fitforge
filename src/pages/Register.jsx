@@ -110,7 +110,7 @@ export default function Register() {
           <p className="text-brown-500 mt-2 font-body">Free forever. No credit card needed.</p>
         </div>
         <form onSubmit={handleSubmit} className="animate-fade-up delay-100 bg-cream rounded-2xl p-8 border border-brown-200 shadow-sm">
-          {error && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-5">{error}</div>}
+          {error && <div className="bg-rose-50 border border-rose-200 text-rose-600 text-sm rounded-xl px-4 py-3 mb-5">{error}</div>}
           <button type="button" onClick={handleGoogleLogin} disabled={googleLoading || loading} className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-brown-200 bg-white text-brown-800 font-medium hover:bg-brown-50 transition-colors disabled:opacity-50 mb-5">
             <FcGoogle className="text-xl" />
             {googleLoading ? 'Connecting...' : 'Continue with Google'}

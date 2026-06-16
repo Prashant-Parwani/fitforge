@@ -260,10 +260,10 @@ export default function Coach() {
 
   return (
     <main className="pt-16 h-screen bg-brown-100 flex overflow-hidden">
-      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-16 left-0 z-40 w-80 bg-brown-950 text-cream border-r border-brown-800 flex flex-col transition-transform duration-300`}>
-        <div className="p-4 border-b border-brown-800">
+      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-16 left-0 z-40 w-80 bg-brown-950 text-cream border-r border-brown-700 flex flex-col transition-transform duration-300`}>
+        <div className="p-4">
           <button onClick={startNewChat}
-            className="w-full bg-cream text-brown-950 hover:bg-brown-100 rounded-xl px-4 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition-colors">
+            className="w-full bg-cream text-brown-900 hover:bg-brown-50 rounded-xl px-4 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm border border-brown-100">
             <FiPlus /> New Chat
           </button>
         </div>
@@ -288,7 +288,7 @@ export default function Coach() {
                   </div>
                   {sessions.length > 1 && (
                     <span onClick={(e) => { e.stopPropagation(); deleteSession(session.id) }}
-                      className="opacity-0 group-hover:opacity-100 text-brown-500 hover:text-red-300 transition-opacity">
+                      className="opacity-0 group-hover:opacity-100 text-brown-500 hover:text-rose-300 transition-opacity">
                       <FiTrash2 />
                     </span>
                   )}
@@ -372,7 +372,7 @@ export default function Coach() {
             ))}
 
             {error && (
-              <div className="max-w-3xl mx-auto bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+              <div className="max-w-3xl mx-auto bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl px-4 py-3">
                 {error}
               </div>
             )}

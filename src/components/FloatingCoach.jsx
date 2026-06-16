@@ -254,7 +254,7 @@ export default function FloatingCoach() {
           ))}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-3 py-2">{error}</div>
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl px-3 py-2">{error}</div>
           )}
 
           {msgs.length > 0 && !loading && (
@@ -288,7 +288,7 @@ export default function FloatingCoach() {
               onClick={listening ? stopVoice : startVoice}
               disabled={loading || keyNotSet}
               className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all flex-shrink-0 disabled:opacity-40 ${
-                listening ? 'bg-red-500 text-white animate-pulse' : 'bg-brown-100 text-brown-600 hover:bg-brown-200'
+                listening ? 'bg-rose-500 text-white animate-pulse' : 'bg-brown-100 text-brown-600 hover:bg-brown-200'
               }`}
               title={listening ? 'Stop listening' : 'Voice input'}
             >

@@ -55,7 +55,7 @@ export default function SleepTracker() {
 
   const recoveryTip = () => {
     if (!todayEntry) return null
-    if (todaySleep.hours < 5)  return { msg: 'Less than 5hrs — skip heavy lifting today. Active recovery only.', col: 'text-red-600 bg-red-50 border-red-100' }
+    if (todaySleep.hours < 5)  return { msg: 'Less than 5hrs — skip heavy lifting today. Active recovery only.', col: 'text-rose-600 bg-rose-50 border-rose-100' }
     if (todaySleep.hours < 6.5) return { msg: 'Sleep was short. Lower your weights by 10% today.', col: 'text-amber-700 bg-amber-50 border-amber-100' }
     if (todaySleep.hours >= 7 && todaySleep.quality >= 4) return { msg: 'Excellent sleep! Push hard today — your body is recovered and ready.', col: 'text-green-700 bg-green-50 border-green-100' }
     return { msg: 'Decent sleep. Train normally but listen to your body.', col: 'text-brown-700 bg-brown-50 border-brown-200' }
@@ -84,7 +84,7 @@ export default function SleepTracker() {
           <div>
             <div className="flex justify-between text-sm mb-2">
               <span className="font-medium text-brown-700">Hours slept</span>
-              <span className={`font-bold ${hours >= 7 ? 'text-green-600' : hours >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
+              <span className={`font-bold ${hours >= 7 ? 'text-green-600' : hours >= 6 ? 'text-amber-600' : 'text-rose-600'}`}>
                 {hours}h
               </span>
             </div>
@@ -124,7 +124,7 @@ export default function SleepTracker() {
       {todayEntry && (
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Recovery Score', value: recoveryScore, unit: '/ 100', col: recoveryScore >= 70 ? 'text-green-600' : recoveryScore >= 45 ? 'text-amber-600' : 'text-red-600' },
+            { label: 'Recovery Score', value: recoveryScore, unit: '/ 100', col: recoveryScore >= 70 ? 'text-green-600' : recoveryScore >= 45 ? 'text-amber-600' : 'text-rose-600' },
             { label: 'Hours Slept',    value: todaySleep.hours + 'h', unit: '', col: 'text-brown-800' },
             { label: 'Sleep Quality',  value: ['','Poor','Average','Good','Great','Excellent'][todaySleep.quality], unit: '', col: 'text-brown-800' },
           ].map(s => (
@@ -158,7 +158,7 @@ export default function SleepTracker() {
           <div className="flex items-center gap-3 mt-2 text-xs text-brown-400">
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-green-600 inline-block"></span>7h+ (good)</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-500 inline-block"></span>6-7h (ok)</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-red-500 inline-block"></span>&lt;6h (poor)</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-rose-500 inline-block"></span>&lt;6h (poor)</span>
           </div>
         </div>
       )}

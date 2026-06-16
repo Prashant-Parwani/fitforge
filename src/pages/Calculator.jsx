@@ -128,7 +128,7 @@ export default function WorkoutHistory() {
   }, {})
 
   const focusColors = {
-    Chest: 'bg-red-100 text-red-700', Back: 'bg-blue-100 text-blue-700',
+    Chest: 'bg-rose-100 text-rose-700', Back: 'bg-blue-100 text-blue-700',
     Legs: 'bg-green-100 text-green-700', Shoulders: 'bg-purple-100 text-purple-700',
     Arms: 'bg-orange-100 text-orange-700', Core: 'bg-yellow-100 text-yellow-700',
     Cardio: 'bg-teal-100 text-teal-700', 'Full Body': 'bg-brown-100 text-brown-700',

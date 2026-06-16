@@ -274,7 +274,7 @@ export default function Progress() {
                             <div className="text-brown-400">{w.duration} min</div>
                           </div>
                           <button onClick={() => deleteWorkout(w.id)}
-                            className="text-brown-200 hover:text-red-400 opacity-0 group-hover:opacity-100 text-sm">🗑</button>
+                            className="text-brown-200 hover:text-rose-400 opacity-0 group-hover:opacity-100 text-sm">🗑</button>
                         </div>
                       ))}
                     </div>
@@ -346,7 +346,7 @@ export default function Progress() {
                       </div>
                       <div className="text-xs text-brown-600">{w.sets}s · {w.duration}m</div>
                       <button onClick={() => deleteWorkout(w.id)}
-                        className="text-brown-200 hover:text-red-400 opacity-0 group-hover:opacity-100 text-sm">🗑</button>
+                        className="text-brown-200 hover:text-rose-400 opacity-0 group-hover:opacity-100 text-sm">🗑</button>
                     </div>
                   ))}
                 </div>
@@ -396,7 +396,7 @@ export default function Progress() {
                             </span>
                           )}
                           <button onClick={() => deleteWeight(origIdx)}
-                            className="text-brown-200 hover:text-red-400 opacity-0 group-hover:opacity-100 text-sm">🗑</button>
+                            className="text-brown-200 hover:text-rose-400 opacity-0 group-hover:opacity-100 text-sm">🗑</button>
                         </div>
                       )
                     })}
