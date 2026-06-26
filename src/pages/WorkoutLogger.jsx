@@ -440,7 +440,7 @@ export default function WorkoutLogger() {
           </div>
 
           <button onClick={() => navigate('/')} className="btn-primary w-full py-3 text-base">
-            Back to Dashboard ->
+            Back to Dashboard →
           </button>
         </div>
       </main>
